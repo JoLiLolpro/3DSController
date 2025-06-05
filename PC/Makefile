@@ -5,7 +5,7 @@ SDIR	:=	source
 IDIR	:=	include
 LDIR	:=	lib
 CFLAGS	:=	-I$(IDIR) -fms-extensions -O2 -Wall
-LFLAGS	:=	$(LDIR)/vJoyInterface.lib -lws2_32 -lGdi32 -lgdiplus -static-libgcc
+LFLAGS	:=	-lws2_32 -lGdi32 -lgdiplus -static-libgcc
 CFILES	:=	$(wildcard $(SDIR)/*.c)
 OBJS	:=	$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(wildcard $(SDIR)/*.c))
 
