@@ -1,0 +1,1 @@
+makerom -f cia -o 3DSController.cia -elf 3DSControllerstripped.elf -rsf "cxi/build_cia.rsf" -icon "cxi/icon.icn" -banner "cxi/banner.bnr" -exefslogo -target t

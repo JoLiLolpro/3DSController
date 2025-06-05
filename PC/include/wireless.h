@@ -16,51 +16,26 @@
 enum NET_COMMANDS {
 	CONNECT,
 	KEYS,
-	SCREENSHOT,
 };
 
-// It is deliberately set up to have an anonymous struct as well as a named struct for convenience, not a mistake!
+
 struct packet {
-	struct packetHeader {
-		unsigned char command;
-		unsigned char keyboardActive;
-	};
-	struct packetHeader packetHeader;
-	
-	union {
-		// CONNECT
-		struct connectPacket {
-		};
-		struct connectPacket connectPacket;
-		
-		// KEYS
-		struct keysPacket {
-			unsigned int keys;
-			
-			struct {
-				short x;
-				short y;
-			} circlePad;
-			
-			struct {
-				unsigned short x;
-				unsigned short y;
-			} touch;
-			
-			struct {
-				short x;
-				short y;
-			} cStick;
-		};
-		struct keysPacket keysPacket;
-		
-		// SCREENSHOT
-		struct screenshotPacket {
-			unsigned short offset;
-			unsigned char data[SCREENSHOT_CHUNK];
-		};
-		struct screenshotPacket screenshotPacket;
-	};
+    struct packetHeader {
+        unsigned char command;
+    } header;
+
+    union {
+        struct connectPacket {
+        } Connect;
+
+        struct keysPacket {
+            unsigned int keys;
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } touch;
+        } Keys;
+    };
 };
 
 extern SOCKET listener;
@@ -78,5 +53,3 @@ void printIPs(void);
 void startListening(void);
 void sendBuffer(int length);
 int receiveBuffer(int length);
-
-void sendScreenshot(void);

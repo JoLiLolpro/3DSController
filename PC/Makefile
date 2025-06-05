@@ -11,17 +11,8 @@ OBJS	:=	$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(wildcard $(SDIR)/*.c))
 
 PLATFORM = $(shell uname)
 
-ifeq ($(findstring Linux,$(PLATFORM)),Linux)
-	TARGET=3DSController
-endif
+TARGET=3DSController.exe
 
-ifeq ($(findstring Darwin,$(PLATFORM)),Darwin)
-	TARGET=3DSController
-endif
-
-ifeq ($(findstring MINGW,$(PLATFORM)),MINGW)
-	TARGET=3DSController.exe
-endif
 
 $(TARGET): $(ODIR) $(OBJS)
 	$(LN) $(ODIR)/*.o -o $(TARGET) $(CFLAGS) $(LFLAGS)

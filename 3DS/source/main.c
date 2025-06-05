@@ -8,8 +8,6 @@
 #include "wireless.h"
 #include "settings.h"
 #include "drawing.h"
-#include "input.h"
-#include "keyboard.h"
 
 static jmp_buf exitJmp;
 
@@ -39,7 +37,6 @@ int main(void) {
 	
 	if(setjmp(exitJmp)) goto exit;
 	
-	preRenderKeyboard();
 	
 	clearScreen();
 	drawString(10, 10, "Initialising FS...");
@@ -95,9 +92,9 @@ int main(void) {
 	clearScreen();
 	gfxFlushBuffers();
 	gfxSwapBuffers();
-	
-	disableBacklight();
-	
+
+	if(!settings.BackLight) disableBacklight();
+
 	while(aptMainLoop()) {
 		hidScanInput();
 		irrstScanInput();
@@ -110,48 +107,13 @@ int main(void) {
 		touchPosition touch;
 		touchRead(&touch);
 		
-		clearScreen();
-		
-		if((kHeld & KEY_L) && (kHeld & KEY_R) && (kHeld & KEY_X)) {
-			if(keyboardToggle) {
-				keyboardActive = !keyboardActive;
-				keyboardToggle = false;
-				
-				if(keyboardActive) enableBacklight();
-			}
-		}
-		else keyboardToggle = true;
-		
-		if(keyboardActive) {
-			drawKeyboard();
-			
-			if(touch.px >= 1 && touch.px <= 312 && touch.py >= 78 && touch.py <= 208) {
-				int x = (int)((float)touch.px * 12.0f / 320.0f);
-				int y = (int)((float)(touch.py - 78) * 12.0f / 320.0f);
-				int width = 24;
-				int height = 24;
-				
-				if(keyboardChars[x + y * 12] == ' ') {
-					while(keyboardChars[(x - 1) + y * 12] == ' ') x--;
-					
-					width = (int)(5.0f * 320.0f / 12.0f) - 1;
-				}
-				
-				else if(keyboardChars[x + y * 12] == '\13') {
-					while(keyboardChars[(x - 1) + y * 12] == '\13') x--;
-					while(keyboardChars[x + (y - 1) * 12] == '\13') y--;
-					
-					width = (int)(2.0f * 320.0f / 12.0f) - 1;
-					height = (int)(3.0f * 320.0f / 12.0f) - 1;
-				}
-				
-				if(keyboardChars[x + y * 12]) drawBox((int)((float)x * 320.0f / 12.0f) + 1, (int)(78.0f + (float)y * 320.0f / 12.0f) + 1, width, height, 31, 31, 0);
-			}
+		// draw the lines on the bottom screen
+		if(settings.BackLight) {
+			drawBox(155, 115, 5, 126, 0, 255, 0); //vertical
+			drawBox(160, 115, 160, 5, 0, 255, 0); //horizontal
 		}
 		
-		sendKeys(kHeld, circlePad, touch, cStick);
-		
-		//receiveBuffer(sizeof(struct packet));
+		sendKeys(kHeld, touch);
 		
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
@@ -161,8 +123,8 @@ int main(void) {
 	}
 	
 	exit:
-	
-	enableBacklight();
+
+	if(!settings.BackLight) enableBacklight();
 	
 	SOCU_ShutdownSockets();
 	

@@ -7,11 +7,14 @@
 
 #include "settings.h"
 
+#include "inet_pton.h"
+
 struct settings settings;
 
 struct settings defaultSettings = {
 	IPString: "",
 	port: DEFAULT_PORT,
+	BackLight: 1,
 };
 
 Handle fileHandle;
@@ -72,6 +75,10 @@ bool readSettings(void) {
 	
 	if(getSetting("Port: ", buffer, setting)) {
 		sscanf(setting, "%d", &settings.port);
+	}
+
+	if(getSetting("BackLight: ", buffer, setting)) {
+		sscanf(setting, "%1d", &settings.BackLight);
 	}
 	
 	free(buffer);

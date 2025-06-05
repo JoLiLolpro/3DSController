@@ -1,7 +1,5 @@
 #include <stddef.h>
 
-#include "keyboard.h"
-
 #include "wireless.h"
 
 int sock;
@@ -33,17 +31,14 @@ int receiveBuffer(int length) {
 }
 
 void sendConnectionRequest(void) {
-	outBuf.command = CONNECT;
-	outBuf.keyboardActive = keyboardActive;
-	sendBuf(offsetof(struct packet, connectPacket) + sizeof(struct connectPacket));
+	outBuf.header.command = CONNECT;
+	sendBuf(offsetof(struct packet, Keys) + sizeof(struct connectPacket));
 }
 
-void sendKeys(unsigned int keys, circlePosition circlePad, touchPosition touch, circlePosition cStick) {
-	outBuf.command = KEYS;
-	outBuf.keyboardActive = keyboardActive;
-	memcpy(&outBuf.keys, &keys, 4);
-	memcpy(&outBuf.circlePad, &circlePad, 4);
-	memcpy(&outBuf.touch, &touch, 4);
-	memcpy(&outBuf.cStick, &cStick, 4);
-	sendBuf(offsetof(struct packet, keysPacket) + sizeof(struct keysPacket));
+void sendKeys(unsigned int keys, touchPosition touch) {
+    outBuf.header.command = KEYS;  // Update command field
+    memcpy(&outBuf.Keys.keys, &keys, sizeof(keys));  // Copy keys value
+    memcpy(&outBuf.Keys.touch, &touch, sizeof(touchPosition));  // Copy touch data
+
+    sendBuf(offsetof(struct packet, Keys) + sizeof(struct keysPacket));
 }

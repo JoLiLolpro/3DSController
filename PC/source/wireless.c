@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "general.h"
+#include "error.h"
 
 #include "settings.h"
 

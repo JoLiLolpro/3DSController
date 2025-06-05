@@ -10,69 +10,34 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
-#include "inet_pton.h"
-
-#define SCREENSHOT_CHUNK 4000
 
 #define DEFAULT_PORT 8889
 
 enum NET_COMMANDS {
 	CONNECT,
-	KEYS,
-	SCREENSHOT,
+	KEYS
 };
 
 // It is deliberately set up to have an anonymous struct as well as a named struct for convenience, not a mistake!
 struct packet {
-	union {
-		struct packetHeader {
-			unsigned char command;
-			unsigned char keyboardActive;
-		};
-		struct packetHeader packetHeader;
-	};
-	
-	union {
-		// CONNECT
-		union {
-			struct connectPacket {
-			};
-			struct connectPacket connectPacket;
-		};
-		
-		// KEYS
-		union {
-			struct keysPacket {
-				unsigned int keys;
-				
-				struct {
-					short x;
-					short y;
-				} circlePad;
-				
-				struct {
-					unsigned short x;
-					unsigned short y;
-				} touch;
-				
-				struct {
-					short x;
-					short y;
-				} cStick;
-			};
-			struct keysPacket keysPacket;
-		};
-		
-		// SCREENSHOT
-		union {
-			struct screenshotPacket {
-				unsigned short offset;
-				unsigned char data[SCREENSHOT_CHUNK];
-			};
-			struct screenshotPacket screenshotPacket;
-		};
-	};
+    struct packetHeader {
+        unsigned char command;
+    } header;
+
+    union {
+        struct connectPacket {
+        } Connect;
+
+        struct keysPacket {
+            unsigned int keys;
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } touch;
+        } Keys;
+    };
 };
+
 
 extern int sock;
 extern struct sockaddr_in sain, saout;
@@ -84,4 +49,4 @@ bool openSocket(int port);
 void sendBuf(int length);
 int receiveBuffer(int length);
 void sendConnectionRequest(void);
-void sendKeys(unsigned int keys, circlePosition circlePad, touchPosition touch, circlePosition cStick);
+void sendKeys(unsigned int keys, touchPosition touch);
