@@ -36,7 +36,7 @@ int main(void) {
 	gfxSetDoubleBuffering(GFX_BOTTOM, false);
 	
 	if(setjmp(exitJmp)) goto exit;
-	
+	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
 	
 	clearScreen();
 	drawString(10, 10, "Initialising FS...");
@@ -68,7 +68,6 @@ int main(void) {
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
 		gfxFlushBuffers();
-		gspWaitForVBlank();
 		gfxSwapBuffers();
 	}
 	
@@ -100,10 +99,6 @@ int main(void) {
 		irrstScanInput();
 		
 		u32 kHeld = hidKeysHeld();
-		circlePosition circlePad;
-		circlePosition cStick;
-		hidCstickRead(&cStick);
-		hidCircleRead(&circlePad);
 		touchPosition touch;
 		touchRead(&touch);
 		
@@ -112,13 +107,15 @@ int main(void) {
 			drawBox(155, 115, 5, 126, 0, 255, 0); //vertical
 			drawBox(160, 115, 160, 5, 0, 255, 0); //horizontal
 		}
-		
-		sendKeys(kHeld, touch);
+
+		if (touch.px != lastTouch.px || touch.py != lastTouch.py) {
+			sendKeys(kHeld, touch);
+			lastTouch = touch;
+		}
 		
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
 		gfxFlushBuffers();
-		gspWaitForVBlank();
 		gfxSwapBuffers();
 	}
 	

@@ -11,7 +11,6 @@ struct settings settings;
 
 struct settings defaultSettings = {
 	port: 8889,
-	throttle: 20,
 };
 
 static bool getSetting(char *name, char *src, char *dest) {
@@ -61,10 +60,6 @@ bool readSettings(void) {
 	
 	if(getSetting("Port: ", buffer, setting)) {
 		sscanf(setting, "%d", &settings.port);
-	}
-	
-	if(getSetting("Throttle: ", buffer, setting)) {
-		sscanf(setting, "%d", &settings.throttle);
 	}
 	
 	fclose(f);
