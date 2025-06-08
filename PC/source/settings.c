@@ -11,6 +11,7 @@ struct settings settings;
 
 struct settings defaultSettings = {
 	port: 8889,
+	smooth: 0.3,
 };
 
 static bool getSetting(char *name, char *src, char *dest) {
@@ -60,6 +61,10 @@ bool readSettings(void) {
 	
 	if(getSetting("Port: ", buffer, setting)) {
 		sscanf(setting, "%d", &settings.port);
+	}
+
+	if(getSetting("Smooth: ", buffer, setting)) {
+		sscanf(setting, "%lf", &settings.smooth);
 	}
 	
 	fclose(f);

@@ -68,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 						double targetX = (double)(currentTouch.x - 160) * widthMultiplier;
 						double targetY = (double)(currentTouch.y - 120) * heightMultiplier;
 
-						double alpha = 0.3;  // didnt tested the perfect value, this one works fine
+						double alpha = settings.smooth;
 						if (smoothX < 0) {
     						smoothX = targetX;
     						smoothY = targetY;

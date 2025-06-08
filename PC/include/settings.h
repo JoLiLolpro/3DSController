@@ -4,7 +4,7 @@
 
 struct settings {
 	int port;
-	int throttle;
+	double smooth;
 };
 
 extern struct settings settings;
