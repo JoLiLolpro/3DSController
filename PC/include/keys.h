@@ -24,5 +24,4 @@ struct touch {
 	short y;
 };
 
-extern struct touch lastTouch;
 extern struct touch currentTouch;

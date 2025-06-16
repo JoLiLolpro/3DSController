@@ -1,0 +1,18 @@
+{
+    "comment_port": "Default port is 8889, if you change this, you must change it in the 3DS's 3DSController.ini as well",
+    "port": 8889,
+    "comment_smooth": "The default smoothing value is 0.3. If you set it to 1, the mouse will follow the raw input exactly, with no smoothing. The closer you set it to 0, the smoother the mouse movement becomes — but with increased input delay",
+    "smooth": 0.3,
+    "comment_Active_Zone_1": "The 3ds bottom screen resolution is 320*240, you can set a custom active zone as a rectangle that matches your screen aspect ratio (Start_Coordinate is the top-left corner and End_Coordinate is the bottom-right corner of the rectangle), (0;0) is the top left corner of the screen.",
+    "comment_Active_Zone_2": "For example, the coordinates below are a rectangle that covers the bottom right area of the screen and that matches the 16:9 aspect ratio.",
+    "comment_Active_Zone_3": "Set Custom_Active_Zone to true if you want your custom active zone to be recognized by the program.",
+    "Custom_Active_Zone": false,
+    "Start_Coordinate": {
+        "x": 112,
+        "y": 123
+    },
+    "End_Coordinate": {
+        "x": 320,
+        "y": 240
+    }
+}

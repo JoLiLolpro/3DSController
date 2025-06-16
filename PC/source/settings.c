@@ -4,70 +4,65 @@
 
 #include "keys.h"
 #include "wireless.h"
-
+#include "cJSON.h"
 #include "settings.h"
 
 struct settings settings;
+struct StartCoor StartCoor;
+struct EndCoor EndCoor;
 
-struct settings defaultSettings = {
-	port: 8889,
-	smooth: 0.3,
-};
+void load_settings(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Failed to open the settings file\n");
+        return;
+    }
 
-static bool getSetting(char *name, char *src, char *dest) {
-	char *start = strstr(src, name);
-	
-	if(start) {
-		start += strlen(name);
-		
-		char *end = start + strlen(start);
-		if(strstr(start, "\n") - 1 < end) end = strstr(start, "\n") - 1;
-		size_t size = (size_t)end - (size_t)start;
-		
-		strncpy(dest, start, size);
-		dest[size] = '\0';
-		
-		return true;
-	}
-	
-	return false;
-}
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    rewind(file);
 
-bool readSettings(void) {
-	FILE *f;
-	size_t len = 0;
-	char *buffer = NULL;
-	
-	memcpy(&settings, &defaultSettings, sizeof(struct settings));
-	
-	f = fopen("3DSController.ini", "rb");
-	if(!f) {
-		return false;
-	}
-	
-	fseek(f, 0, SEEK_END);
-	len = ftell(f);
-	rewind(f);
-	
-	buffer = malloc(len);
-	if(!buffer) {
-		fclose(f);
-		return false;
-	}
-	
-	fread(buffer, 1, len, f);
-	
-	char setting[64] = { '\0' };
-	
-	if(getSetting("Port: ", buffer, setting)) {
-		sscanf(setting, "%d", &settings.port);
+    char *json_data = (char *)malloc(file_size + 1);
+    fread(json_data, 1, file_size, file);
+    json_data[file_size] = '\0';
+    fclose(file);
+
+    cJSON *json = cJSON_Parse(json_data);
+    if (!json) {
+        printf("Error parsing JSON\n");
+        free(json_data);
+        return;
+    }
+
+    // Update settings struct with JSON values
+    cJSON *port = cJSON_GetObjectItem(json, "port");
+    cJSON *smooth = cJSON_GetObjectItem(json, "smooth");
+    cJSON *customZone = cJSON_GetObjectItem(json, "Custom_Active_Zone");
+	cJSON *sc = cJSON_GetObjectItem(json, "Start_Coordinate");
+	cJSON *ec = cJSON_GetObjectItem(json, "End_Coordinate");
+
+    if (cJSON_IsNumber(port)) settings.port = port->valueint;
+    if (cJSON_IsNumber(smooth)) settings.smooth = smooth->valuedouble;
+    if (cJSON_IsBool(customZone)) settings.Custom_Active_Zone = cJSON_IsTrue(customZone);
+
+	if (cJSON_IsObject(sc)) {
+    	cJSON *Xs = cJSON_GetObjectItem(sc, "x");
+    	cJSON *Ys = cJSON_GetObjectItem(sc, "y");
+    	if (cJSON_IsNumber(Xs) && cJSON_IsNumber(Ys)) {
+    	    StartCoor.x = Xs->valuedouble;
+    	    StartCoor.y = Ys->valuedouble;
+    	}
 	}
 
-	if(getSetting("Smooth: ", buffer, setting)) {
-		sscanf(setting, "%lf", &settings.smooth);
-	}
-	
-	fclose(f);
-	
-	return true;
+	if (cJSON_IsObject(ec)) {
+    	cJSON *Xe = cJSON_GetObjectItem(ec, "x");
+    	cJSON *Ye = cJSON_GetObjectItem(ec, "y");
+    	if (cJSON_IsNumber(Xe) && cJSON_IsNumber(Ye)) {
+    	    EndCoor.x = Xe->valuedouble;
+    	    EndCoor.y = Ye->valuedouble;
+    	}
+	}	
+
+    cJSON_Delete(json);
+    free(json_data);
 }
