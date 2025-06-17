@@ -135,7 +135,7 @@ int main(void) {
 		if(settings.BackLight) {
 			drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top vertinal
 			drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left horizontal
-			drawBox(XS, YE, CalculV, 5, 0, 255, 0); // Bottom vertical
+			drawBox(XS, YE, CalculV+5, 5, 0, 255, 0); // Bottom vertical
 			drawBox(XE, YS, 5, CalculH, 0, 255, 0); // Right horizontal
 		}
 
