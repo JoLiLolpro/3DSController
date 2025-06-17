@@ -3,6 +3,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <setjmp.h>
+#include <stdarg.h>
 
 #include <3ds.h>
 
@@ -12,14 +13,27 @@
 
 
 static jmp_buf exitJmp;
+int LinePosition = 2;
+
+void printText(const char *format, ...) {
+    char buffer[256];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    printf("\x1b[%d;2H%s", LinePosition, buffer);
+    LinePosition += 2;
+}
+
 
 void hang(char *message) {
 	while(aptMainLoop()) {
 		hidScanInput();
 		
-		clearScreen();
-		drawString(10, 10, "%s", message);
-		drawString(10, 20, "Press Start and Select to exit.");
+		
+		printText("%s", message);
+		printText("Press Start and Select to exit.");
 		
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
@@ -39,9 +53,11 @@ void drawRect(u16* fb, int fbWidth, int x, int y, int w, int h, u16 color) {
     }
 }
 
+
 int main(void) {
 	acInit();
 	gfxInitDefault();
+	consoleInit(GFX_TOP, NULL);
 	
 	gfxSetDoubleBuffering(GFX_TOP, false);
 	gfxSetDoubleBuffering(GFX_BOTTOM, false);
@@ -49,15 +65,13 @@ int main(void) {
 	if(setjmp(exitJmp)) goto exit;
 	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
 	
-	clearScreen();
-	drawString(10, 10, "Initialising FS...");
+	printText("Initialising FS...");
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
 	fsInit();
 	
-	clearScreen();
-	drawString(10, 10, "Initialising SOC...");
+	printText("Initialising SOC...");
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
@@ -69,11 +83,12 @@ int main(void) {
 		if(wifiStatus) break;
 		
 		hidScanInput();
-		clearScreen();
-		drawString(10, 10, "Waiting for WiFi connection...");
-		drawString(10, 20, "Ensure you are in range of an access point,");
-		drawString(10, 30, "and that wireless communications are enabled.");
-		drawString(10, 50, "You can alternatively press Start and Select to exit.");
+		printText("Initialising SOC...");
+
+		printText("Waiting for WiFi connection...");
+		printText("Ensure you are in range of an access point,");
+		printText("and that wireless communications are enabled.");
+		printText("You can alternatively press Start and Select to exit.");
 		
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
@@ -82,8 +97,7 @@ int main(void) {
 		gfxSwapBuffers();
 	}
 	
-	clearScreen();
-	drawString(10, 10, "Reading settings...");
+	printText("Reading settings...");
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
@@ -91,8 +105,7 @@ int main(void) {
 		hang("Could not read 3DSController.ini!");
 	}
 	
-	clearScreen();
-	drawString(10, 10, "Connecting to %s on port %d...", settings.IPString, settings.port);
+	printText("Connecting to %s on port %d...", settings.IPString, settings.port);
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
@@ -105,7 +118,9 @@ int main(void) {
 	int YE;
 
 	while (receiveBuffer(sizeof(struct packet)) < 0) {
-
+		hidScanInput();
+		u32 kHeld = hidKeysHeld();
+		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 	}
 	if (rcvBuf.header.command == CONNECT) {
 		XS = rcvBuf.Connect.activeZoneStart.x;
@@ -116,10 +131,6 @@ int main(void) {
 	int CalculV = XE-XS;
 	int CalculH = YE-YS;
 	YS = YS+1;
-
-	clearScreen();
-	gfxFlushBuffers();
-	gfxSwapBuffers();
 
 	if(!settings.BackLight) disableBacklight();
 
