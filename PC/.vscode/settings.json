@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "keys.h": "c",
-        "*.rh": "c"
+        "*.rh": "c",
+        "stdbool.h": "c",
+        "winuser.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
     }
 }

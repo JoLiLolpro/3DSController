@@ -5,9 +5,8 @@ A 3DS homebrew application which allows you to use your 3DS touchscreen as a wir
 This fork is from [CTurt/3DSController](https://github.com/CTurt/3DSController) and delete all the features except the touchscreen one and make it more usable for playing osu! with a 3DS XL.
 
 This fork implement smoothing for the cursor,
-the active zone of the touchscreen is 1/4 of the screen (the bottom right corner) because the 3DSXL's screen is too big for me, and the blue rectangle on screen show the limits of the active zone.
+the active zone of the touchscreen is fully customizable because the 3DSXL's screen can be too big for playing osu, and the blue rectangle on screen show the limits of the active zone.
 
-TODO: Make the active zone completely customizable.
 
 ### Download
 The latest release will always be downloadable from [here](https://github.com/JoLiLolpro/3DSController/releases).
@@ -17,7 +16,7 @@ You don't need vjoy for this fork.
 ### Setup and Usage
 Extract the archive and copy the file in the `3DS` directory with the extension that applies to your loader: `3DSController.3dsx` for the homebrew app, or `3DSController.cia` for FBI or other titles managers, into your 3DS's SD card or flashcard's micro SD card.
 
-Copy the file `3DS/3DSController.ini` to the root of your 3DS's SD card, and change the line that says `IP: 192.168.0.4` to match your computer's local IP.
+Copy the file `3DS/3DSController.ini` to the root of your 3DS's SD card, and change the line that says `IP: 192.168.0.1` to match your computer's local IP.
 
 If you are unsure of your local IP address, run `3DSController.exe` and it will tell you.
 
@@ -32,17 +31,34 @@ Otherwise, you should just see a black screen with blue lines, this is a good si
 Press Start and Select to return to the Homebrew Loader/Home menu.
 
 ### Configuration
-Find the line `Port: 8889` and change it to your desired port, do this for both the 3DS's `3DSController.ini` and the PC's `3DSController.ini`.
+If you want to channge the port, find the line `Port: 8889` and change it to your desired port, do this for both the 3DS's `3DSController.ini` and the PC's `settings.json`.
 
 In the 3DS's `3DSController.ini` the screen is turned on by default, if you still want to completely turn off the screen like the original app does, then set `BackLight` to `0`.
 
-In the PC's `3DSController.ini` there is a setting called `Smooth`, it determines how smooth the mouse movements will be (more smooth = slower movement) if recommend setting it to `1` if you want to play osu!
+In the PC's `settings.json` there is a setting called `Smooth`, it determines how smooth the mouse movements will be (more smooth = slower movement) I recommend setting it to `1` if you want to play osu!
+
+By default the active zone is the whole 3ds bottom screen but you can change it by setting `Custom_Active_Zone` to `true`, the active zone is determined as a rectangle with a `Start_Coordinate` that corresponds to the top-left corner and a `End_Coordinate` that corresponds to the bottom-right corner. THE CUSTOM RESOLUTION NEED TO MATCHES YOUR SCREEN ASPECT RATIO
+
+The 3ds origin point (0;0) is in the top-left corner of the screen, and the screen resolution is 240*320.
+
+## List of coordinates that matches the 16:9 aspect ratio
+
+|             |                 |               |
+| ----------  | --------------- | ------------- |
+| **Location**| **Start point** | **End point** |
+|Total screen |      (0;60)      |     (320;240)     |
+|Top Left     |      (0;0)      |     (208;117)     |
+|Top Right    |      (112;0)      |     (320;117)     |
+|Bottom Left  |      (0;123)      |     (208;240)     |
+|Bottom Right |      (112;123)      |     (320;240)     |
 
 ### Building
 
-for the 3ds app, install devkitpro, open a cmd in the 3DS folder and type `make clean` then `make`
+For the 3ds app, install devkitpro, open a cmd in the 3DS folder and type `make clean` then `make`.
 
-for the PC app you need msys2 and mingw32, open a cmd in the PC folder and type `mingw32 make clean` then `mingw32 make`
+For the PC app you need msys2 and mingw32, open a cmd in the PC folder and type `mingw32 make clean` then `mingw32 make`.
+
+There is a `debug` variable in PC/source/main.c and if you set it to `true` it will display the latency of the 3ds.
 
 ### Setup and Usage (Linux) Note that I don't know if this still works with my fork.
 -For keyboard emulation
