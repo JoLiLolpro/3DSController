@@ -115,6 +115,7 @@ int main(void) {
 	}
 	int CalculV = XE-XS;
 	int CalculH = YE-YS;
+	YS = YS+1;
 
 	clearScreen();
 	gfxFlushBuffers();
@@ -130,13 +131,13 @@ int main(void) {
 		touchPosition touch;
 		touchRead(&touch);
 
-		// draw the lines on the bottom screen
+		// draw the lines on the bottom screen, DONT ASK ME HOW I FOUND THOSES NUMBERS
 		
 		if(settings.BackLight) {
-			drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top vertinal
-			drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left horizontal
-			drawBox(XS, YE, CalculV+5, 5, 0, 255, 0); // Bottom vertical
-			drawBox(XE, YS, 5, CalculH, 0, 255, 0); // Right horizontal
+			drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top horizontal
+			drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left vertical
+			drawBox(XS, YE-4, CalculV, 5, 0, 255, 0); // Bottom horizontal
+			drawBox(XE-5, YS, 5, CalculH, 0, 255, 0); // Right vertical
 		}
 
 		if (touch.px != lastTouch.px || touch.py != lastTouch.py) {
