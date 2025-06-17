@@ -28,13 +28,13 @@ void printText(const char *format, ...) {
 
 
 void hang(char *message) {
+
+	printText("%s", message);
+	printText("Press Start and Select to exit.");
+
 	while(aptMainLoop()) {
 		hidScanInput();
-		
-		
-		printText("%s", message);
-		printText("Press Start and Select to exit.");
-		
+
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
@@ -64,6 +64,12 @@ int main(void) {
 	
 	if(setjmp(exitJmp)) goto exit;
 	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
+
+	if(!readSettings()) {
+		hang("Could not read 3DSController.ini!");
+	}
+	
+	if(!settings.BackLight) disableBacklight();
 	
 	printText("Initialising FS...");
 	gfxFlushBuffers();
@@ -76,35 +82,35 @@ int main(void) {
 	gfxSwapBuffers();
 	
 	socInit((u32 *)memalign(0x1000, 0x100000), 0x100000);
-	
-	while(aptMainLoop()) { /* Wait for WiFi; break when WiFiStatus is truthy */
-		u32 wifiStatus = 0;
-		ACU_GetWifiStatus(&wifiStatus);
-		if(wifiStatus) break;
-		
-		hidScanInput();
-		printText("Initialising SOC...");
 
+	u32 wifiStatus = 0;
+	ACU_GetWifiStatus(&wifiStatus);
+	if (!wifiStatus) {
 		printText("Waiting for WiFi connection...");
 		printText("Ensure you are in range of an access point,");
 		printText("and that wireless communications are enabled.");
 		printText("You can alternatively press Start and Select to exit.");
+		while(aptMainLoop()) { /* Wait for WiFi; break when WiFiStatus is truthy */
+			u32 wifiStatus = 0;
+			ACU_GetWifiStatus(&wifiStatus);
+			if(wifiStatus) break;
+	
+			hidScanInput();
+			u32 kHeld = hidKeysHeld();
+
+			if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
-		u32 kHeld = hidKeysHeld();
-		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
-		
-		gfxFlushBuffers();
-		gfxSwapBuffers();
+			gfxFlushBuffers();
+			gfxSwapBuffers();
+		}
 	}
+
 	
 	printText("Reading settings...");
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
-	if(!readSettings()) {
-		hang("Could not read 3DSController.ini!");
-	}
-	
+
 	printText("Connecting to %s on port %d...", settings.IPString, settings.port);
 	gfxFlushBuffers();
 	gfxSwapBuffers();
@@ -132,7 +138,7 @@ int main(void) {
 	int CalculH = YE-YS;
 	YS = YS+1;
 
-	if(!settings.BackLight) disableBacklight();
+	
 
 	while(aptMainLoop()) {
 
@@ -163,7 +169,7 @@ int main(void) {
 	}
 	
 	exit:
-
+	
 	if(!settings.BackLight) enableBacklight();
 	
 	SOCU_ShutdownSockets();
