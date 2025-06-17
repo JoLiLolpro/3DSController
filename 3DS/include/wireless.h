@@ -26,6 +26,14 @@ struct packet {
 
     union {
         struct connectPacket {
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } activeZoneStart;
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } activeZoneEnd;
         } Connect;
 
         struct keysPacket {

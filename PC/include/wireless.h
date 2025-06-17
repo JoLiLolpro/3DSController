@@ -26,6 +26,14 @@ struct packet {
 
     union {
         struct connectPacket {
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } activeZoneStart;
+            struct {
+                unsigned short x;
+                unsigned short y;
+            } activeZoneEnd;
         } Connect;
 
         struct keysPacket {
@@ -51,5 +59,5 @@ extern char hostName[80];
 void initNetwork(void);
 void printIPs(void);
 void startListening(void);
-void sendBuffer(int length);
+void sendBuffer(int length, int XS, int YS, int XE, int YE);
 int receiveBuffer(int length);

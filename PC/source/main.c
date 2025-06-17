@@ -109,13 +109,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 					printf("3DS Connected!\n");
 
 					Sleep(50); 
-					sendBuffer(1);
+					sendBuffer(1, StartX, StartY, EndX, EndY);
 
 					Sleep(50); 
-					sendBuffer(1);
+					sendBuffer(1, StartX, StartY, EndX, EndY);
 
 					Sleep(50); 
-					sendBuffer(1);
+					sendBuffer(1, StartX, StartY, EndX, EndY);
 
 					break;
 

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <malloc.h>
 #include <setjmp.h>
@@ -8,6 +9,7 @@
 #include "wireless.h"
 #include "settings.h"
 #include "drawing.h"
+
 
 static jmp_buf exitJmp;
 
@@ -26,6 +28,15 @@ void hang(char *message) {
 		gspWaitForVBlank();
 		gfxSwapBuffers();
 	}
+}
+
+void drawRect(u16* fb, int fbWidth, int x, int y, int w, int h, u16 color) {
+    for (int j = 0; j < h; j++) {
+        u16* row = fb + (y + j) * fbWidth + x;
+        for (int i = 0; i < w; i++) {
+            row[i] = color;
+        }
+    }
 }
 
 int main(void) {
@@ -87,7 +98,24 @@ int main(void) {
 	
 	openSocket(settings.port);
 	sendConnectionRequest();
-	
+
+	int XS = 0;
+	int YS;
+	int XE;
+	int YE;
+
+	while (receiveBuffer(sizeof(struct packet)) < 0) {
+
+	}
+	if (rcvBuf.header.command == CONNECT) {
+		XS = rcvBuf.Connect.activeZoneStart.x;
+		YS = rcvBuf.Connect.activeZoneStart.y;
+		XE = rcvBuf.Connect.activeZoneEnd.x;
+		YE = rcvBuf.Connect.activeZoneEnd.y;
+	}
+	int CalculV = XE-XS;
+	int CalculH = YE-YS;
+
 	clearScreen();
 	gfxFlushBuffers();
 	gfxSwapBuffers();
@@ -95,17 +123,20 @@ int main(void) {
 	if(!settings.BackLight) disableBacklight();
 
 	while(aptMainLoop()) {
+
 		hidScanInput();
-		irrstScanInput();
 		
 		u32 kHeld = hidKeysHeld();
 		touchPosition touch;
 		touchRead(&touch);
-		
+
 		// draw the lines on the bottom screen
+		
 		if(settings.BackLight) {
-			drawBox(155, 115, 5, 126, 0, 255, 0); //vertical
-			drawBox(160, 115, 160, 5, 0, 255, 0); //horizontal
+			drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top vertinal
+			drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left horizontal
+			drawBox(XS, YE, CalculV, 5, 0, 255, 0); // Bottom vertical
+			drawBox(XE, YS, 5, CalculH, 0, 255, 0); // Right horizontal
 		}
 
 		if (touch.px != lastTouch.px || touch.py != lastTouch.py) {
@@ -127,7 +158,6 @@ int main(void) {
 	
 	svcCloseHandle(fileHandle);
 	fsExit();
-	
 	gfxExit();
 	acExit();
 	

@@ -69,7 +69,12 @@ void startListening(void) {
 	}
 }
 
-void sendBuffer(int length) {
+void sendBuffer(int length, int XS, int YS, int XE, int YE) {
+	buffer.Connect.activeZoneStart.x = XS;
+	buffer.Connect.activeZoneStart.y = YS;
+	buffer.Connect.activeZoneEnd.x = XE;
+	buffer.Connect.activeZoneEnd.y = YE;
+	length = offsetof(struct packet, Keys) + sizeof(struct connectPacket);
 	if(sendto(listener, (char *)&buffer, length, 0, (struct sockaddr *)&client_in, sizeof(struct sockaddr_in)) != length) {
 		error("sendto");
 	}
