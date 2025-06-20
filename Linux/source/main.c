@@ -2,27 +2,48 @@
 
 #define VERSION 0.6
 
-#include <windows.h>
+#define RED_TEXT     "\x1b[31m"
+#define NORMAL_TEXT   "\x1b[0m"
+
+#include <X11/Xlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
+#include <X11/extensions/XTest.h>
 
 #include "wireless.h"
 #include "keys.h"
 #include "settings.h"
 #include "error.h"
 
+Display *display = NULL;
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow) {
+void set_cursor_pos(int x, int y) {
+    if (!display) {
+		printf("display error");
+        return;
+    }
+
+    XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
+    XFlush(display);
+}
+
+int main(int argc, char *argv[]) {
 	
 	printf("3DS Controller Server %.1f\n", VERSION);
-	
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
-	DWORD screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	DWORD screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	display = XOpenDisplay(NULL);
+	if (!display) {
+    	fprintf(stderr, RED_TEXT "Error: Could not open X display.\n" NORMAL_TEXT);
+    return 1;
+}
+
+	Screen *s = DefaultScreenOfDisplay(display);
+	unsigned int screenWidth = s->width;
+	unsigned int screenHeight = s->height;
+
 
 	double widthMultiplier = 0.0;
 	double heightMultiplier = 0.0;
@@ -31,11 +52,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	
 	static bool Debug = false; // if this is true the latency will be displayed
 
-	LARGE_INTEGER frequency;
-	LARGE_INTEGER receiveTime, applyTime;
+	struct timespec receiveTime, applyTime;
 	double latencyMs;
 	static bool FirstLoop = true;
-	QueryPerformanceFrequency(&frequency);
 
 	load_settings("settings.json");
 
@@ -74,6 +93,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	
 	startListening();
 
+	printf("listening\n");
+
 	while (1) {
 		if (receiveBuffer(sizeof(struct packet)) > 0) {
 			switch (buffer.header.command) {
@@ -84,13 +105,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 					buffer.header.command = CONNECT;
 					printf("3DS Connected!\n");
 
-					Sleep(50); 
+					usleep(50000);
 					sendBuffer(1, StartX, StartY, EndX, EndY);
 
-					Sleep(50); 
+					usleep(50000);
 					sendBuffer(1, StartX, StartY, EndX, EndY);
 
-					Sleep(50); 
+					usleep(50000);
 					sendBuffer(1, StartX, StartY, EndX, EndY);
 
 					break;
@@ -119,28 +140,27 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 
 						if (Debug) {
 							if (FirstLoop) {
-								QueryPerformanceCounter(&receiveTime);
+								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
 								FirstLoop = false;
 							}
 							else {
-								QueryPerformanceCounter(&applyTime);
-								latencyMs = (double)(applyTime.QuadPart - receiveTime.QuadPart) * 1000.0 / frequency.QuadPart;
+								clock_gettime(CLOCK_MONOTONIC, &applyTime);
+								latencyMs = (applyTime.tv_sec - receiveTime.tv_sec) * 1000.0 + (applyTime.tv_nsec - receiveTime.tv_nsec) / 1000000.0;
+								
 								if (latencyMs > 30) {
-									SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
-									printf("Latency: %.3f ms\n", latencyMs);
-									SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+									printf(RED_TEXT "Latency: %.3f ms\n" NORMAL_TEXT, latencyMs);
 								}
 								else {
 									printf("Latency: %.3f ms\n", latencyMs);
 								}
 
-								SetCursorPos(smoothX, smoothY);
+								set_cursor_pos(smoothX, smoothY);
 
-								QueryPerformanceCounter(&receiveTime);
+								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
 							}
 						}
 						else {
-							SetCursorPos(smoothX, smoothY);
+							set_cursor_pos(smoothX, smoothY);
 						}
 					}
 
@@ -151,5 +171,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	}
 
 	error("accept()");
+	XCloseDisplay(display);
 	return 0;
 }

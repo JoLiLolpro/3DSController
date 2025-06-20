@@ -138,7 +138,7 @@ int main(void) {
 	int CalculH = YE-YS;
 	YS = YS+1;
 
-	
+	printText("Connected!");
 
 	while(aptMainLoop()) {
 
