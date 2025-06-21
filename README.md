@@ -78,23 +78,6 @@ For linux you need gcc.
 
 There is a `debug` variable in PC/source/main.c and if you set it to `true` it will display the latency of the 3ds.
 
-### Setup and Usage (Linux) Note that I don't know if this still works with my fork.
--For keyboard emulation
-Follow the Windows instructions, but use `3DSController.py` instead of the EXE.
-
--For Joystick emulation, first, install [python-uinput](https://github.com/tuomasjjrasanen/python-uinput). BEWARE: The latest release of this library as of the writing of this tutorial is 0.10.2 which is broken for most updated systems. Download the master branch directly.
-
-Make sure that uinput module is running. You can do it from cosole like so: `#!sudo modprobe uinput`
-
-Then, follow the Windows instructions, but use `3DSController_gamepad.py` instead of the EXE.
-
-May work on OS X too, but this is not tested.
-
-### Configuration (Linux) Note that I don't know if this still works with my fork.
-The configuration for the keyboard emulation is in `3DSController.py`, not the INI.
-
-The configuration for the joystick emulation is in `3DSController_gamepad.py`, not the INI.
-
 ## General Troubleshooting
 - Make sure that you are using the 3DS and PC application from the same release,
 - Make sure your 3DS has internet access (turn on the switch on the side of the 3DS so that an orange light shows) and is on the same network as your PC,
