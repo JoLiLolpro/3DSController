@@ -60,6 +60,11 @@ int main(void) {
 	
 	gfxSetDoubleBuffering(GFX_TOP, false);
 	gfxSetDoubleBuffering(GFX_BOTTOM, false);
+
+	int XS;
+	int YS;
+	int XE;
+	int YE;
 	
 	if(setjmp(exitJmp)) goto exit;
 	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
@@ -113,17 +118,13 @@ int main(void) {
 	gfxSwapBuffers();
 	
 	openSocket(settings.port);
-	sendConnectionRequest();
-
-	int XS;
-	int YS;
-	int XE;
-	int YE;
 
 	while (receiveBuffer(sizeof(struct packet)) < 0) {
 		hidScanInput();
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
+		sendConnectionRequest();
+		svcSleepThread(1000000000LL);
 	}
 	if (rcvBuf.header.command == CONNECT) {
 		XS = rcvBuf.Connect.activeZoneStart.x;

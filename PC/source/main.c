@@ -31,6 +31,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	
 	static bool Debug = false; // if this is true the latency will be displayed
 
+	bool connected = false;
+
 	LARGE_INTEGER frequency;
 	LARGE_INTEGER receiveTime, applyTime;
 	double latencyMs;
@@ -78,6 +80,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 		if (receiveBuffer(sizeof(struct packet)) > 0) {
 			switch (buffer.header.command) {
 				case CONNECT:
+					if (connected) break;
+					connected = true;
+					
 					currentTouch.x = 0;
 					currentTouch.y = 0;
 
