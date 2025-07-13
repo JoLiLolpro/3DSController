@@ -39,7 +39,6 @@ void hang(char *message) {
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		
 		gfxFlushBuffers();
-		gspWaitForVBlank();
 		gfxSwapBuffers();
 	}
 }
@@ -64,6 +63,10 @@ int main(void) {
 	
 	if(setjmp(exitJmp)) goto exit;
 	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
+
+	printText("Reading settings...");
+	gfxFlushBuffers();
+	gfxSwapBuffers();
 
 	if(!readSettings()) {
 		hang("Could not read 3DSController.ini!");
@@ -105,12 +108,6 @@ int main(void) {
 		}
 	}
 
-	
-	printText("Reading settings...");
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-	
-
 	printText("Connecting to %s on port %d...", settings.IPString, settings.port);
 	gfxFlushBuffers();
 	gfxSwapBuffers();
@@ -118,7 +115,7 @@ int main(void) {
 	openSocket(settings.port);
 	sendConnectionRequest();
 
-	int XS = 0;
+	int XS;
 	int YS;
 	int XE;
 	int YE;
@@ -167,13 +164,13 @@ int main(void) {
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 	}
+
 	
 	exit:
 	
-	if(!settings.BackLight) enableBacklight();
+	if(!settings.BackLight && settings.found) enableBacklight();
 	
 	SOCU_ShutdownSockets();
-	
 	svcCloseHandle(fileHandle);
 	fsExit();
 	gfxExit();

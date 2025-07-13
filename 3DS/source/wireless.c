@@ -36,9 +36,9 @@ void sendConnectionRequest(void) {
 }
 
 void sendKeys(unsigned int keys, touchPosition touch) {
-    outBuf.header.command = KEYS;  // Update command field
-    memcpy(&outBuf.Keys.keys, &keys, sizeof(keys));  // Copy keys value
-    memcpy(&outBuf.Keys.touch, &touch, sizeof(touchPosition));  // Copy touch data
+    outBuf.header.command = KEYS;
+    memcpy(&outBuf.Keys.keys, &keys, sizeof(keys));
+    memcpy(&outBuf.Keys.touch, &touch, sizeof(touchPosition));
 
     sendBuf(offsetof(struct packet, Keys) + sizeof(struct keysPacket));
 }
