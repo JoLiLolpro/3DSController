@@ -5,40 +5,88 @@
 #define RED_TEXT     "\x1b[31m"
 #define NORMAL_TEXT   "\x1b[0m"
 
-#include <X11/Xlib.h>
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include <X11/extensions/XTest.h>
+#include <linux/uinput.h>
+#include <fcntl.h>
+#include <string.h>
+#include <errno.h>
+#include <X11/Xlib.h>
 
 #include "wireless.h"
 #include "keys.h"
 #include "settings.h"
 #include "error.h"
 
-Display *display = NULL;
+int uinput_fd = -1;
 
-void set_cursor_pos(int x, int y) {
-    if (!display) {
-		printf("display error");
+void init_uinput_device(int screen_Width, int screen_Height) {
+    uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+    if (uinput_fd < 0) {
+        perror("open /dev/uinput");
         return;
     }
 
-    XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
-    XFlush(display);
+    ioctl(uinput_fd, UI_SET_EVBIT, EV_ABS);
+    ioctl(uinput_fd, UI_SET_ABSBIT, ABS_X);
+    ioctl(uinput_fd, UI_SET_ABSBIT, ABS_Y);
+    ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
+    ioctl(uinput_fd, UI_SET_KEYBIT, BTN_TOUCH);
+    ioctl(uinput_fd, UI_SET_EVBIT, EV_SYN);
+
+    struct uinput_user_dev uidev;
+    memset(&uidev, 0, sizeof(uidev));
+    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "3ds-tablet");
+    uidev.id.bustype = BUS_USB;
+    uidev.id.vendor  = 0x1234;
+    uidev.id.product = 0x5678;
+    uidev.id.version = 1;
+
+    uidev.absmin[ABS_X] = 0;
+    uidev.absmax[ABS_X] = screen_Width;
+    uidev.absmin[ABS_Y] = 0;
+    uidev.absmax[ABS_Y] = screen_Height;
+
+    write(uinput_fd, &uidev, sizeof(uidev));
+    ioctl(uinput_fd, UI_DEV_CREATE);
+    usleep(100000);
 }
+
+
+void set_cursor_pos(int absX, int absY, bool touching) {
+    struct input_event ev;
+
+    memset(&ev, 0, sizeof(ev));
+    ev.type = EV_ABS; ev.code = ABS_X; ev.value = absX;
+    write(uinput_fd, &ev, sizeof(ev));
+
+    memset(&ev, 0, sizeof(ev));
+    ev.type = EV_ABS; ev.code = ABS_Y; ev.value = absY;
+    write(uinput_fd, &ev, sizeof(ev));
+
+    memset(&ev, 0, sizeof(ev));
+    ev.type = EV_KEY; ev.code = BTN_TOUCH; ev.value = touching ? 1 : 0;
+    write(uinput_fd, &ev, sizeof(ev));
+
+    memset(&ev, 0, sizeof(ev));
+    ev.type = EV_SYN; ev.code = SYN_REPORT; ev.value = 0;
+    write(uinput_fd, &ev, sizeof(ev));
+}
+
 
 int main(int argc, char *argv[]) {
 	
 	printf("3DS Controller Server %.1f\n", VERSION);
 
-	display = XOpenDisplay(NULL);
+	Display *display = XOpenDisplay(NULL);
 	if (!display) {
     	fprintf(stderr, RED_TEXT "Error: Could not open X display.\n" NORMAL_TEXT);
-    return 1;
-}
+    	return 1;
+	}
 
 	Screen *s = DefaultScreenOfDisplay(display);
 	unsigned int screenWidth = s->width;
@@ -141,6 +189,7 @@ int main(int argc, char *argv[]) {
 						if (Debug) {
 							if (FirstLoop) {
 								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
+								init_uinput_device(screenWidth, screenHeight);
 								FirstLoop = false;
 							}
 							else {
@@ -154,23 +203,32 @@ int main(int argc, char *argv[]) {
 									printf("Latency: %.3f ms\n", latencyMs);
 								}
 
-								set_cursor_pos(smoothX, smoothY);
+								set_cursor_pos(smoothX, smoothY, 1);
 
 								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
 							}
 						}
 						else {
-							set_cursor_pos(smoothX, smoothY);
+							if (FirstLoop) {
+								init_uinput_device(screenWidth, screenHeight);
+								FirstLoop = false;
+							}
+							else {
+								set_cursor_pos(smoothX, smoothY, 1);
+							}
 						}
 					}
-
+					else {
+						set_cursor_pos(smoothX, smoothY, 0); // free the real mouse
+					}
 					
 					break;
 			}
 		}
 	}
 
+	ioctl(uinput_fd, UI_DEV_DESTROY);
+    close(uinput_fd);
 	error("accept()");
-	XCloseDisplay(display);
 	return 0;
 }

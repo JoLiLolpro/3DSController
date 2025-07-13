@@ -1,9 +1,9 @@
 3DS~~Controller~~Mouse ![](/3DS/cxi/icon48x48.png?raw=true)
 ===
-A 3DS homebrew application which allows you to use your 3DS touchscreen as a wireless mouse for Windows.
+A 3DS homebrew application which allows you to use your 3DS touchscreen as a wireless mouse for Windows and Linux(touchscreen).
 
 ## About this fork
-This fork is from [CTurt/3DSController](https://github.com/CTurt/3DSController) and delete all the features except the touchscreen one and make it more usable for playing osu! with a 3DS XL.
+This fork is from [CTurt/3DSController](https://github.com/CTurt/3DSController) and delete all the features except the touchscreen one and make it more usable for playing osu! with a 3DS/3DS XL.
 
 This fork implement smoothing for the cursor,
 the active zone of the touchscreen is fully customizable because the 3DSXL's screen can be too big for playing osu, and the blue rectangle on screen show the limits of the active zone.
@@ -25,15 +25,17 @@ If you are unsure of your local IP address, run the PC app and it will tell you.
 
 Run `3DSController.exe` on your computer. If you are prompted, make sure to allow it through your firewall.
 
-Start the application on your 3DS, normally it says connecting to..., it will automatically try to connect to the IP address you put in `3DSController.ini`.
+Start the application on your 3DS, normally it says `connecting to...`, it will automatically try to connect to the IP address you put in `3DSController.ini`.
 
 If it wasn't able to read the IP from `3DSController.ini`, it will notify you and quit.
 
-Otherwise, it should say connected, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
+Otherwise, it should say `connected`, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
 
 **Press Start and Select at the same time to return to the Homebrew Loader/Home menu.**
 
 ### for LINUX:
+
+**IMPORTANT INFORMATION:** While the Windows version emulates a mouse cursor, the Linux version emulates a touchscreen, which means that you will not see the cursor moving. I made this choice because it was the only way to play osu lazer in Linux (as far as I know). In osu you need to enable `input>touch` and `gameplay>show gameplay cursor during touch input`. **osu-wine will not work.**
 
 you need to open your port with `sudo ufw allow <your-port>/udp`, by default the port is `8889` so type `sudo ufw allow 8889/udp`
 
@@ -43,7 +45,7 @@ Start the application on your 3DS, normally it says `connecting to...`, it will 
 
 If it wasn't able to read the IP from `3DSController.ini`, it will notify you and quit.
 
-Otherwise, it should say `connected`, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
+Otherwise, it should say `connected`, this is a good sign. To see if it works, go [here](https://www.touchscreentest.com/) (or any touchscreen tester) on your pc, touch the 3ds's bottom screen and see if it detect something.
 
 **Press Start and Select at the same time to return to the Homebrew Loader/Home menu.**
 
@@ -60,9 +62,8 @@ The 3ds origin point (0;0) is in the top-left corner of the screen, and the scre
 
 ## List of coordinates that matches the 16:9 aspect ratio
 
-|             |                 |               |
-| ----------  | --------------- | ------------- |
 | **Location**| **Start point** | **End point** |
+| ----------  | --------------- | ------------- |
 |Total screen |      (0;60)      |     (320;240)     |
 |Top Left     |      (0;0)      |     (208;117)     |
 |Top Right    |      (112;0)      |     (320;117)     |
