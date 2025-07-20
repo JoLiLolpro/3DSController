@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "drawing.h": "c",
-        "settings.h": "c",
-        "inet_pton.h": "c"
-    }
-}
