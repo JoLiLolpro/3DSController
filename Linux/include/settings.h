@@ -24,4 +24,4 @@ extern struct StartCoor StartCoor;
 
 extern struct EndCoor EndCoor;
 
-void load_settings(const char *filename);
+int load_settings(const char *filename);

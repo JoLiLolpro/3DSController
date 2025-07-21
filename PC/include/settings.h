@@ -6,6 +6,7 @@ struct settings {
 	int port;
 	double smooth;
 	bool Custom_Active_Zone;
+    bool debug;
 };
 
 struct StartCoor {
@@ -17,6 +18,13 @@ struct EndCoor {
     double x;
     double y;
 };
+
+struct touch {
+	short x;
+	short y;
+};
+
+extern struct touch currentTouch;
 
 extern struct settings settings;
 

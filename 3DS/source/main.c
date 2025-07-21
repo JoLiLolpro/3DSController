@@ -15,6 +15,8 @@
 static jmp_buf exitJmp;
 int LinePosition = 2;
 
+static double VERSION = 1.6;
+
 void printText(const char *format, ...) {
     char buffer[256];
     va_list args;
@@ -43,16 +45,6 @@ void hang(char *message) {
 	}
 }
 
-void drawRect(u16* fb, int fbWidth, int x, int y, int w, int h, u16 color) {
-    for (int j = 0; j < h; j++) {
-        u16* row = fb + (y + j) * fbWidth + x;
-        for (int i = 0; i < w; i++) {
-            row[i] = color;
-        }
-    }
-}
-
-
 int main(void) {
 	acInit();
 	gfxInitDefault();
@@ -67,7 +59,10 @@ int main(void) {
 	int YE;
 	
 	if(setjmp(exitJmp)) goto exit;
+
 	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
+
+	printText("Welcome to 3DS Mouse, version %.1f", VERSION);
 
 	printText("Reading settings...");
 	gfxFlushBuffers();
@@ -119,24 +114,29 @@ int main(void) {
 	
 	openSocket(settings.port);
 
+	// wait for the pc response
+
 	while (receiveBuffer(sizeof(struct packet)) < 0) {
 		hidScanInput();
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
 		sendConnectionRequest();
-		svcSleepThread(1000000000LL);
 	}
+
 	if (rcvBuf.header.command == CONNECT) {
 		XS = rcvBuf.Connect.activeZoneStart.x;
 		YS = rcvBuf.Connect.activeZoneStart.y;
 		XE = rcvBuf.Connect.activeZoneEnd.x;
 		YE = rcvBuf.Connect.activeZoneEnd.y;
 	}
+
 	int CalculV = XE-XS;
 	int CalculH = YE-YS;
 	YS = YS+1;
 
 	printText("Connected!");
+
+	// main loop that send the touch data
 
 	while(aptMainLoop()) {
 
@@ -154,6 +154,8 @@ int main(void) {
 			drawBox(XS, YE-4, CalculV, 5, 0, 255, 0); // Bottom horizontal
 			drawBox(XE-5, YS, 5, CalculH, 0, 255, 0); // Right vertical
 		}
+
+		// send data only id the touch update
 
 		if (touch.px != lastTouch.px || touch.py != lastTouch.py) {
 			sendKeys(kHeld, touch);

@@ -6,10 +6,7 @@
 
 #include <windows.h>
 #include <winsock.h>
-
 #include <stddef.h>
-
-#define SCREENSHOT_CHUNK 4000
 
 #define IP INADDR_ANY
 
@@ -17,7 +14,6 @@ enum NET_COMMANDS {
 	CONNECT,
 	KEYS,
 };
-
 
 struct packet {
     struct packetHeader {
@@ -59,5 +55,5 @@ extern char hostName[80];
 void initNetwork(void);
 void printIPs(void);
 void startListening(void);
-void sendBuffer(int length, int XS, int YS, int XE, int YE);
+void sendConnectBuffer(int length, int XS, int YS, int XE, int YE);
 int receiveBuffer(int length);

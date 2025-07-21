@@ -1,6 +1,6 @@
-// 3DS Controller Server
+// 3DS Mouse Server
 
-#define VERSION 0.6
+#define VERSION 1.6
 
 #include <windows.h>
 #include <stdio.h>
@@ -8,38 +8,44 @@
 #include <stdlib.h>
 
 #include "wireless.h"
-#include "keys.h"
 #include "settings.h"
 #include "error.h"
 
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow) {
 	
-	printf("3DS Controller Server %.1f\n", VERSION);
-	
+	printf("Welcome to 3DS Mouse, version %.1f\n", VERSION);
+
+	// set higher priority in Windows (Unsure if there's a big performance gain, but kept it just in case)
+
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+
+	// get system infos and load the settings file
 
 	DWORD screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	DWORD screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	double widthMultiplier = 0.0;
-	double heightMultiplier = 0.0;
+	load_settings("settings.json");
 
-	static double smoothX = -1, smoothY = -1;
-	
-	static bool Debug = false; // if this is true the latency will be displayed
-
-	bool connected = false;
+	// setting variables for the latency measure (debug)
 
 	LARGE_INTEGER frequency;
 	LARGE_INTEGER receiveTime, applyTime;
 	double latencyMs;
-	static bool FirstLoop = true;
+	bool FirstLoop = true;
 	QueryPerformanceFrequency(&frequency);
 
-	load_settings("settings.json");
+	// define global variables
+
+	double widthMultiplier = 0.0;
+	double heightMultiplier = 0.0;
+
+	double smoothX = -1, smoothY = -1;
+	double offset = settings.smooth;
+
+	bool connected = false;
 
 	// the Starting point of the active zone rectangle
 	int StartX = StartCoor.x;
@@ -52,109 +58,100 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	int ActiveX = EndX-StartX; // size X of the active zone
 	int ActiveY = EndY-StartY; // size Y of the active zone
 
+	// map the 3DS screen to your monitor resolution (May stretch the active zone depending on aspect ratio)
+
 	if (settings.Custom_Active_Zone) {
 		widthMultiplier = screenWidth / (double)ActiveX;
 		heightMultiplier = screenHeight / (double)ActiveY;
-	}
-	else {
+	} else {
 		widthMultiplier = screenWidth / 320.0;
 		heightMultiplier = screenHeight / 240.0;
 		StartX = 0;
 		StartY = 0;
 	}
 
-
 	initNetwork();
 
 	printf("Custom_Active_Zone: %s\n", settings.Custom_Active_Zone ? "true" : "false");
+	printf("Debug: %s\n", settings.debug ? "true" : "false");
 	printf("Smoothing: %f\n", settings.smooth);
 	printf("Port: %d\n", settings.port);
-	printf("Running on: %s\n", hostName);
 	printf("Your local IP(s):\n");
-	printIPs();
+	printIPs(); // print the ipv4 of all your adapters
 	printf("\n");
 	
-	startListening();
+	startListening(); // init the network server
 
-	while (1) {
-		if (receiveBuffer(sizeof(struct packet)) > 0) {
-			switch (buffer.header.command) {
-				case CONNECT:
-					if (connected) break;
-					connected = true;
-					
-					currentTouch.x = 0;
-					currentTouch.y = 0;
+	printf("Waiting for 3DS...\n");
 
-					buffer.header.command = CONNECT;
-					printf("3DS Connected!\n");
+	// first loop that wait for a 3DS connection
 
-					Sleep(50); 
-					sendBuffer(1, StartX, StartY, EndX, EndY);
+	while (!connected) {
+		if (receiveBuffer(sizeof(struct packet)) > 0 && buffer.header.command == CONNECT) {
+			// send back a buffer with the custom active zone so the 3DS can draw the blue lines
 
-					Sleep(50); 
-					sendBuffer(1, StartX, StartY, EndX, EndY);
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-					Sleep(50); 
-					sendBuffer(1, StartX, StartY, EndX, EndY);
+			Sleep(50);
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-					break;
+			Sleep(50);
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-				case KEYS:
-					
-					memcpy(&currentTouch, &buffer.Keys.touch, 4);
-
-					if (currentTouch.x && currentTouch.y) {
-
-                        double relativeX = (double)(currentTouch.x - StartX);
-                        double relativeY = (double)(currentTouch.y - StartY);
-
-						double targetX = relativeX * widthMultiplier;
-						double targetY = relativeY * heightMultiplier;
-
-						double alpha = settings.smooth;
-
-						if (smoothX < 0) {
-    						smoothX = targetX;
-    						smoothY = targetY;
-						} else {
-    						smoothX = alpha * targetX + (1.0 - alpha) * smoothX;
-    						smoothY = alpha * targetY + (1.0 - alpha) * smoothY;
-						}
-
-						if (Debug) {
-							if (FirstLoop) {
-								QueryPerformanceCounter(&receiveTime);
-								FirstLoop = false;
-							}
-							else {
-								QueryPerformanceCounter(&applyTime);
-								latencyMs = (double)(applyTime.QuadPart - receiveTime.QuadPart) * 1000.0 / frequency.QuadPart;
-								if (latencyMs > 30) {
-									SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
-									printf("Latency: %.3f ms\n", latencyMs);
-									SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-								}
-								else {
-									printf("Latency: %.3f ms\n", latencyMs);
-								}
-
-								SetCursorPos(smoothX, smoothY);
-
-								QueryPerformanceCounter(&receiveTime);
-							}
-						}
-						else {
-							SetCursorPos(smoothX, smoothY);
-						}
-					}
-
-					
-					break;
-			}
+			printf("3DS Connected!\n");
+			connected = true;
 		}
 	}
 
-	error("accept()");
+	// main loop that update the mouse position
+
+	while (true) {
+		if (receiveBuffer(sizeof(struct packet)) > 0 && buffer.header.command == KEYS) {
+
+			memcpy(&currentTouch, &buffer.Keys.touch, 4); // put in memory the touch values that the 3DS gave us
+
+			if (currentTouch.x && currentTouch.y) { // make sure its not putting the cursor at the top left when 3ds stop sending packet
+
+				// Calculate position relative to the active zone's origin
+                double relativeX = (double)(currentTouch.x - StartX);
+                double relativeY = (double)(currentTouch.y - StartY);
+
+				// adjust the touch position to your screen resolution
+				double targetX = relativeX * widthMultiplier;
+				double targetY = relativeY * heightMultiplier;
+
+				// smooth the movement based on an offset between 0 and 1
+				if (smoothX < 0) {
+    				smoothX = targetX;
+    				smoothY = targetY;
+				} else {
+    				smoothX = offset * targetX + (1.0 - offset) * smoothX;
+    				smoothY = offset * targetY + (1.0 - offset) * smoothY;
+				}
+
+				if (settings.debug) {
+					if (FirstLoop) {
+						QueryPerformanceCounter(&receiveTime);
+						FirstLoop = false;
+					} else {
+						QueryPerformanceCounter(&applyTime);
+						latencyMs = (double)(applyTime.QuadPart - receiveTime.QuadPart) * 1000.0 / frequency.QuadPart;
+						if (latencyMs > 30) {
+							SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY); // set the console color to red
+							printf("Latency: %.3f ms\n", latencyMs);
+							SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); // set the console color back to normal
+						} else {
+							printf("Latency: %.3f ms\n", latencyMs);
+						}
+
+						SetCursorPos(smoothX, smoothY); // set the mouse position
+						QueryPerformanceCounter(&receiveTime);
+					}
+				} else {
+					SetCursorPos(smoothX, smoothY); // set the mouse position
+				}
+			}
+		}
+	}
 	return 0;
 }
