@@ -116,7 +116,7 @@ int main(void) {
 
 	// wait for the pc response
 
-	while (receiveBuffer(sizeof(struct packet)) < 0) {
+	while (receiveBuffer(sizeof(struct packet)) <= 0) {
 		hidScanInput();
 		u32 kHeld = hidKeysHeld();
 		if((kHeld & KEY_START) && (kHeld & KEY_SELECT)) longjmp(exitJmp, 1);
