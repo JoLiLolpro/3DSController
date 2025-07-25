@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "keys.h"
+#include "error.h"
 #include "wireless.h"
 #include "cJSON.h"
 #include "settings.h"
@@ -9,11 +9,12 @@
 struct settings settings;
 struct StartCoor StartCoor;
 struct EndCoor EndCoor;
+struct touch currentTouch;
 
 void load_settings(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        printf("Failed to open the settings file\n");
+        error("Failed to open the settings file\n");
         return;
     }
 
@@ -28,7 +29,7 @@ void load_settings(const char *filename) {
 
     cJSON *json = cJSON_Parse(json_data);
     if (!json) {
-        printf("Error parsing JSON\n");
+        error("Error parsing JSON\n");
         free(json_data);
         return;
     }
@@ -39,10 +40,12 @@ void load_settings(const char *filename) {
     cJSON *customZone = cJSON_GetObjectItem(json, "Custom_Active_Zone");
 	cJSON *sc = cJSON_GetObjectItem(json, "Start_Coordinate");
 	cJSON *ec = cJSON_GetObjectItem(json, "End_Coordinate");
+    cJSON *debug = cJSON_GetObjectItem(json, "Debug");
 
     if (cJSON_IsNumber(port)) settings.port = port->valueint;
     if (cJSON_IsNumber(smooth)) settings.smooth = smooth->valuedouble;
     if (cJSON_IsBool(customZone)) settings.Custom_Active_Zone = cJSON_IsTrue(customZone);
+    if (cJSON_IsBool(debug)) settings.debug = cJSON_IsTrue(debug);
 
 	if (cJSON_IsObject(sc)) {
     	cJSON *Xs = cJSON_GetObjectItem(sc, "x");

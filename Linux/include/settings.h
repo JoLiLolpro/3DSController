@@ -6,6 +6,7 @@ struct settings {
 	int port;
 	double smooth;
 	bool Custom_Active_Zone;
+    bool debug;
 };
 
 struct StartCoor {
@@ -18,10 +19,17 @@ struct EndCoor {
     double y;
 };
 
+struct touch {
+	short x;
+	short y;
+};
+
+extern struct touch currentTouch;
+
 extern struct settings settings;
 
 extern struct StartCoor StartCoor;
 
 extern struct EndCoor EndCoor;
 
-int load_settings(const char *filename);
+void load_settings(const char *filename);

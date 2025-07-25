@@ -1,6 +1,6 @@
 // 3DS Controller Server
 
-#define VERSION 0.6
+#define VERSION 1.6
 
 #define RED_TEXT     "\x1b[31m"
 #define NORMAL_TEXT   "\x1b[0m"
@@ -18,7 +18,6 @@
 #include <X11/Xlib.h>
 
 #include "wireless.h"
-#include "keys.h"
 #include "settings.h"
 #include "error.h"
 
@@ -80,7 +79,9 @@ void set_cursor_pos(int absX, int absY, bool touching) {
 
 int main(int argc, char *argv[]) {
 	
-	printf("3DS Controller Server %.1f\n", VERSION);
+	printf("Welcome to 3DS Mouse, version %.1f\n", VERSION);
+
+	// get system infos and load the settings file
 
 	Display *display = XOpenDisplay(NULL);
 	if (!display) {
@@ -92,19 +93,23 @@ int main(int argc, char *argv[]) {
 	unsigned int screenWidth = s->width;
 	unsigned int screenHeight = s->height;
 
+	load_settings("settings.json");
 
-	double widthMultiplier = 0.0;
-	double heightMultiplier = 0.0;
-
-	static double smoothX = -1, smoothY = -1;
-	
-	static bool Debug = false; // if this is true the latency will be displayed
+	// setting variables for the latency measure (debug)
 
 	struct timespec receiveTime, applyTime;
 	double latencyMs;
 	static bool FirstLoop = true;
 
-	load_settings("settings.json");
+	// define global variables
+
+	double widthMultiplier = 0.0;
+	double heightMultiplier = 0.0;
+
+	static double smoothX = -1, smoothY = -1;
+	double offset = settings.smooth;
+
+	bool connected = false;
 
 	// the Starting point of the active zone rectangle
 	int StartX = StartCoor.x;
@@ -117,6 +122,8 @@ int main(int argc, char *argv[]) {
 	int ActiveX = EndX-StartX; // size X of the active zone
 	int ActiveY = EndY-StartY; // size Y of the active zone
 
+	// map the 3DS screen to your monitor resolution (May stretch the active zone depending on aspect ratio)
+
 	if (settings.Custom_Active_Zone) {
 		widthMultiplier = screenWidth / (double)ActiveX;
 		heightMultiplier = screenHeight / (double)ActiveY;
@@ -128,107 +135,103 @@ int main(int argc, char *argv[]) {
 		StartY = 0;
 	}
 
-
 	initNetwork();
 
 	printf("Custom_Active_Zone: %s\n", settings.Custom_Active_Zone ? "true" : "false");
+	printf("Debug: %s\n", settings.debug ? "true" : "false");
 	printf("Smoothing: %f\n", settings.smooth);
 	printf("Port: %d\n", settings.port);
-	printf("Running on: %s\n", hostName);
 	printf("Your local IP(s):\n");
-	printIPs();
+	printIPs(); // print the ipv4 of all your adapters
 	printf("\n");
 	
-	startListening();
+	startListening(); // init the network server
 
-	printf("listening\n");
+	printf("Waiting for 3DS...\n");
 
-	while (1) {
-		if (receiveBuffer(sizeof(struct packet)) > 0) {
-			switch (buffer.header.command) {
-				case CONNECT:
-					currentTouch.x = 0;
-					currentTouch.y = 0;
+	// first loop that wait for a 3DS connection
+	
+	while (!connected) {
+		if (receiveBuffer(sizeof(struct packet)) > 0 && buffer.header.command == CONNECT) {
+			// send back a buffer with the custom active zone so the 3DS can draw the blue lines
 
-					buffer.header.command = CONNECT;
-					printf("3DS Connected!\n");
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-					usleep(50000);
-					sendBuffer(1, StartX, StartY, EndX, EndY);
+			usleep(50000);
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-					usleep(50000);
-					sendBuffer(1, StartX, StartY, EndX, EndY);
+			usleep(50000);
+			sendConnectBuffer(1, StartX, StartY, EndX, EndY);
 
-					usleep(50000);
-					sendBuffer(1, StartX, StartY, EndX, EndY);
-
-					break;
-
-				case KEYS:
-					
-					memcpy(&currentTouch, &buffer.Keys.touch, 4);
-
-					if (currentTouch.x && currentTouch.y) {
-
-                        double relativeX = (double)(currentTouch.x - StartX);
-                        double relativeY = (double)(currentTouch.y - StartY);
-
-						double targetX = relativeX * widthMultiplier;
-						double targetY = relativeY * heightMultiplier;
-
-						double alpha = settings.smooth;
-
-						if (smoothX < 0) {
-    						smoothX = targetX;
-    						smoothY = targetY;
-						} else {
-    						smoothX = alpha * targetX + (1.0 - alpha) * smoothX;
-    						smoothY = alpha * targetY + (1.0 - alpha) * smoothY;
-						}
-
-						if (Debug) {
-							if (FirstLoop) {
-								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
-								init_uinput_device(screenWidth, screenHeight);
-								FirstLoop = false;
-							}
-							else {
-								clock_gettime(CLOCK_MONOTONIC, &applyTime);
-								latencyMs = (applyTime.tv_sec - receiveTime.tv_sec) * 1000.0 + (applyTime.tv_nsec - receiveTime.tv_nsec) / 1000000.0;
-								
-								if (latencyMs > 30) {
-									printf(RED_TEXT "Latency: %.3f ms\n" NORMAL_TEXT, latencyMs);
-								}
-								else {
-									printf("Latency: %.3f ms\n", latencyMs);
-								}
-
-								set_cursor_pos(smoothX, smoothY, 1);
-
-								clock_gettime(CLOCK_MONOTONIC, &receiveTime);
-							}
-						}
-						else {
-							if (FirstLoop) {
-								init_uinput_device(screenWidth, screenHeight);
-								FirstLoop = false;
-							}
-							else {
-								set_cursor_pos(smoothX, smoothY, 1);
-							}
-						}
-					}
-					else {
-						set_cursor_pos(smoothX, smoothY, 0); // free the real mouse
-					}
-					
-					break;
-			}
+			printf("3DS Connected!\n");
+			connected = true;
 		}
 	}
 
+	// main loop that update the mouse position
+
+	while (true) {
+		if (receiveBuffer(sizeof(struct packet)) > 0 && buffer.header.command == KEYS) {
+
+			memcpy(&currentTouch, &buffer.Keys.touch, 4); // put in memory the touch values that the 3DS gave us
+
+			if (currentTouch.x && currentTouch.y) { // make sure its not putting the cursor at the top left when 3ds stop sending packet
+
+				// Calculate position relative to the active zone's origin
+                double relativeX = (double)(currentTouch.x - StartX);
+                double relativeY = (double)(currentTouch.y - StartY);
+
+				// adjust the touch position to your screen resolution
+				double targetX = relativeX * widthMultiplier;
+				double targetY = relativeY * heightMultiplier;
+
+				// smooth the movement based on an offset between 0 and 1
+				if (smoothX < 0) {
+    				smoothX = targetX;
+    				smoothY = targetY;
+				} else {
+    				smoothX = offset * targetX + (1.0 - offset) * smoothX;
+    				smoothY = offset * targetY + (1.0 - offset) * smoothY;
+				}
+
+				if (settings.debug) {
+					if (FirstLoop) {
+						clock_gettime(CLOCK_MONOTONIC, &receiveTime);
+						init_uinput_device(screenWidth, screenHeight);
+						FirstLoop = false;
+					}
+					else {
+						clock_gettime(CLOCK_MONOTONIC, &applyTime);
+						latencyMs = (applyTime.tv_sec - receiveTime.tv_sec) * 1000.0 + (applyTime.tv_nsec - receiveTime.tv_nsec) / 1000000.0;
+						
+						if (latencyMs > 30) {
+							printf(RED_TEXT "Latency: %.3f ms\n" NORMAL_TEXT, latencyMs); // print in red
+						}
+						else {
+							printf("Latency: %.3f ms\n", latencyMs);
+						}
+
+						set_cursor_pos(smoothX, smoothY, 1); // set the mouse position
+
+						clock_gettime(CLOCK_MONOTONIC, &receiveTime);
+					}
+				}
+				else {
+					if (FirstLoop) {
+						init_uinput_device(screenWidth, screenHeight); // init the virtual touchscreen
+						FirstLoop = false;
+					}
+					else {
+						set_cursor_pos(smoothX, smoothY, 1); // set the mouse position
+					}
+				}
+			}
+			else {
+				set_cursor_pos(smoothX, smoothY, 0); // free the real mouse
+			}
+		}
+	}
 	ioctl(uinput_fd, UI_DEV_DESTROY);
-    close(uinput_fd);
-	error("accept()");
+    close(uinput_fd); // disconnect the virtual touchscreen
 	return 0;
 }

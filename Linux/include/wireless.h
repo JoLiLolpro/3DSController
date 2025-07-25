@@ -61,5 +61,5 @@ extern char hostName[80];
 void initNetwork(void);
 void printIPs(void);
 void startListening(void);
-void sendBuffer(int length, int XS, int YS, int XE, int YE);
+void sendConnectBuffer(int length, int XS, int YS, int XE, int YE);
 int receiveBuffer(int length);

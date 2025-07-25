@@ -86,7 +86,8 @@ void startListening(void) {
     }
 }
 
-void sendBuffer(int length, int XS, int YS, int XE, int YE) {
+void sendConnectBuffer(int length, int XS, int YS, int XE, int YE) {
+    buffer.header.command = CONNECT;
     buffer.Connect.activeZoneStart.x = XS;
     buffer.Connect.activeZoneStart.y = YS;
     buffer.Connect.activeZoneEnd.x = XE;

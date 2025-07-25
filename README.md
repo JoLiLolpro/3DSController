@@ -77,7 +77,7 @@ For the 3ds app, install devkitpro, open a cmd/terminal in the 3DS folder and ty
 
 For the PC app you need msys2 and mingw32, open a cmd in the PC folder and type `mingw32 make clean` then `mingw32 make`.
 
-For linux you need gcc.
+For linux you need gcc and the X11/Xtst development package.
 
 ## General Troubleshooting
 - Make sure that you are using the 3DS and PC application from the same release,
