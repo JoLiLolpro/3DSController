@@ -7,7 +7,7 @@ This fork is from [CTurt/3DSController](https://github.com/CTurt/3DSController) 
 
 This fork implement smoothing for the cursor,
 the active zone of the touchscreen is fully customizable because the 3DSXL's screen can be too big for playing osu, and the blue rectangle on screen show the limits of the active zone.
-
+You can also manually input the PC IP with the 3DS's built-in keyboard.
 
 ## Download
 The latest release will always be downloadable from [here](https://github.com/JoLiLolpro/3DSController/releases).
@@ -25,32 +25,34 @@ If you are unsure of your local IP address, run the PC app and it will tell you.
 
 Run `3DSController.exe` on your computer. If you are prompted, make sure to allow it through your firewall.
 
-Start the application on your 3DS, normally it says `connecting to...`, it will automatically try to connect to the IP address you put in `3DSController.ini`.
+Start the application on your 3DS, press A the use the IP you put in the settings file or press B the enter manually an ip.
 
-If it wasn't able to read the IP from `3DSController.ini`, it will notify you and quit.
+now it should say `connecting to...`, it will automatically try to connect to the IP address you selected.
 
 Otherwise, it should say `connected`, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
 
-**Press Start and Select at the same time to return to the Homebrew Loader/Home menu.**
+**Press Start to return to the Homebrew Loader/Home menu.**
 
 ### for LINUX:
 
 **IMPORTANT INFORMATION:** While the Windows version emulates a mouse cursor, the Linux version emulates a touchscreen, which means that you will not see the cursor moving. I made this choice because it was the only way to play osu lazer in Linux (as far as I know). In osu you need to enable `input>touch` and `gameplay>show gameplay cursor during touch input`. **osu-wine will not work.**
 
-you need to open your port with `sudo ufw allow <your-port>/udp`, by default the port is `8889` so type `sudo ufw allow 8889/udp`
+You need to open your port with `sudo ufw allow <your-port>/udp`, by default the port is `8889` so type `sudo ufw allow 8889/udp`.
 
-after that, open a terminal in the `PC` folder and type `./3DSController-linux`
+After that, open a terminal in the `PC` folder and type `./3DSController-linux`.
 
-Start the application on your 3DS, normally it says `connecting to...`, it will automatically try to connect to the IP address you put in `3DSController.ini`.
+Start the application on your 3DS, press A the use the IP you put in the settings file or press B the enter manually an ip.
 
-If it wasn't able to read the IP from `3DSController.ini`, it will notify you and quit.
+now it should say `connecting to...`, it will automatically try to connect to the IP address you selected.
 
 Otherwise, it should say `connected`, this is a good sign. To see if it works, go [here](https://www.touchscreentest.com/) (or any touchscreen tester) on your pc, touch the 3ds's bottom screen and see if it detect something.
 
-**Press Start and Select at the same time to return to the Homebrew Loader/Home menu.**
+**Press Start to return to the Homebrew Loader/Home menu.**
 
 ## Configuration/Settings
 If you want to channge the port, find the line `Port: 8889` and change it to your desired port, do this for both the 3DS's `3DSController.ini` and the PC's `settings.json`.
+
+There is a `debug` option in `settings.json` and if you set it to `true` it will display the latency of the 3ds.
 
 In the 3DS's `3DSController.ini` the screen is turned on by default, if you still want to completely turn off the screen like the original app does, then set `BackLight` to `0`.
 
@@ -77,13 +79,10 @@ For the PC app you need msys2 and mingw32, open a cmd in the PC folder and type 
 
 For linux you need gcc.
 
-There is a `debug` variable in PC/source/main.c and if you set it to `true` it will display the latency of the 3ds.
-
 ## General Troubleshooting
 - Make sure that you are using the 3DS and PC application from the same release,
 - Make sure your 3DS has internet access (turn on the switch on the side of the 3DS so that an orange light shows) and is on the same network as your PC,
 - Make sure that the `3DSController.ini` is in the root of your 3DS's SD card (not flashcard micro SD),
 - Make sure that the `3DSController.ini` has the local IP of your computer, not your public IP,
 - Make sure your firewall isn't blocking the application,
-- Try using a different port (change the port for both the 3DS and PC's .ini file),
-DS
+- Try using a different port (change the port for both the 3DS and PC's .ini file).

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <timeapi.h>
+
 
 #include "wireless.h"
 #include "settings.h"
@@ -20,6 +22,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+	timeBeginPeriod(1);
 
 	// get system infos and load the settings file
 
