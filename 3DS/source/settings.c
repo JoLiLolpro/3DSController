@@ -43,7 +43,7 @@ bool readSettings(void) {
 	u64 size;
 	u32 bytesRead;
 	
-	FS_Path filePath = fsMakePath(PATH_ASCII, "/3DSController.ini");
+	FS_Path filePath = fsMakePath(PATH_ASCII, "/3DSMouse.ini");
 	
 	Result ret = FSUSER_OpenFileDirectly(&fileHandle, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""), filePath, FS_OPEN_READ, 0x00000000);
 	if(ret) return false;

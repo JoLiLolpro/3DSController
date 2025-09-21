@@ -1,5 +1,5 @@
 BasicInfo:
-  Title                   : "3DS Controller"
+  Title                   : "3DS Mouse"
   CompanyCode             : "00"
   ProductCode             : "CTR-N-3DSC"
   ContentType             : Application # Application / SystemUpdate / Manual / Child / Trial

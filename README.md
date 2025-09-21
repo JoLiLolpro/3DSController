@@ -15,21 +15,21 @@ The latest release will always be downloadable from [here](https://github.com/Jo
 You don't need vjoy for this fork.
 
 ## Setup and Usage
-Extract the archive and copy the file in the `3DS` directory with the extension that applies to your loader: `3DSController.3dsx` for the homebrew app, or `3DSController.cia` for FBI or other titles managers, into your 3DS's SD card or flashcard's micro SD card.
+Extract the archive and copy the file in the `3DS` directory with the extension that applies to your loader: `3DSMouse.3dsx` for the homebrew app, or `3DSMouse.cia` for FBI or other titles managers, into your 3DS's SD card or flashcard's micro SD card.
 
-Copy the file `3DS/3DSController.ini` to the root of your 3DS's SD card, and change the line that says `IP: 192.168.0.1` to match your computer's local IP.
+Copy the file `3DS/3DSMouse.ini` to the root of your 3DS's SD card, and change the line that says `IP: 192.168.0.1` to match your computer's local IP.
 
 If you are unsure of your local IP address, run the PC app and it will tell you.
 
 ### for WINDOWS:
 
-Run `3DSController.exe` on your computer. If you are prompted, make sure to allow it through your firewall.
+Run `3DSMouse.exe` on your computer. If you are prompted, make sure to allow it through your firewall.
 
-Start the application on your 3DS, press A the use the IP you put in the settings file or press B the enter manually an ip.
+Start the application on your 3DS, press A the use the IP you put in the settings file or press B to manually enter an ip.
 
 now it should say `connecting to...`, it will automatically try to connect to the IP address you selected.
 
-Otherwise, it should say `connected`, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
+It should say `connected`, this is a good sign. To see if it works, touch the 3ds's bottom screen and see if your mouse move.
 
 **Press Start to return to the Homebrew Loader/Home menu.**
 
@@ -39,7 +39,7 @@ Otherwise, it should say `connected`, this is a good sign. To see if it works, t
 
 You need to open your port with `sudo ufw allow <your-port>/udp`, by default the port is `8889` so type `sudo ufw allow 8889/udp`.
 
-After that, open a terminal in the `PC` folder and type `./3DSController-linux`.
+After that, open a terminal in the `PC` folder and type `./3DSMouse-linux`.
 
 Start the application on your 3DS, press A the use the IP you put in the settings file or press B the enter manually an ip.
 
@@ -50,11 +50,11 @@ Otherwise, it should say `connected`, this is a good sign. To see if it works, g
 **Press Start to return to the Homebrew Loader/Home menu.**
 
 ## Configuration/Settings
-If you want to channge the port, find the line `Port: 8889` and change it to your desired port, do this for both the 3DS's `3DSController.ini` and the PC's `settings.json`.
+If you want to channge the port, find the line `Port: 8889` and change it to your desired port, do this for both the 3DS's `3DSMouse.ini` and the PC's `settings.json`.
 
 There is a `debug` option in `settings.json` and if you set it to `true` it will display the latency of the 3ds.
 
-In the 3DS's `3DSController.ini` the screen is turned on by default, if you still want to completely turn off the screen like the original app does, then set `BackLight` to `0`.
+In the 3DS's `3DSMouse.ini` the screen is turned on by default, if you still want to completely turn off the screen like the original app does, then set `BackLight` to `0`.
 
 In the PC's `settings.json` there is a setting called `Smooth`, it determines how smooth the mouse movements will be (more smooth = slower movement) I recommend setting it to `1` if you want to play osu!
 
@@ -82,7 +82,7 @@ For linux you need gcc and the X11/Xtst development package.
 ## General Troubleshooting
 - Make sure that you are using the 3DS and PC application from the same release,
 - Make sure your 3DS has internet access (turn on the switch on the side of the 3DS so that an orange light shows) and is on the same network as your PC,
-- Make sure that the `3DSController.ini` is in the root of your 3DS's SD card (not flashcard micro SD),
-- Make sure that the `3DSController.ini` has the local IP of your computer, not your public IP,
+- Make sure that the `3DSMouse.ini` is in the root of your 3DS's SD card (not flashcard micro SD),
+- Make sure that the `3DSMouse.ini` has the local IP of your computer, not your public IP,
 - Make sure your firewall isn't blocking the application,
 - Try using a different port (change the port for both the 3DS and PC's .ini file).

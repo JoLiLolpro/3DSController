@@ -10,7 +10,7 @@ LFLAGS  := -lX11 -lXtst
 CFILES  := $(wildcard $(SDIR)/*.c)
 OBJS    := $(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(CFILES))
 
-TARGET := 3DSController-linux
+TARGET := 3DSMouse-linux
 
 $(TARGET): $(ODIR) $(OBJS)
 	$(LN) $(OBJS) -o $@ $(LFLAGS)

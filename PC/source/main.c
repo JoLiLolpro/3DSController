@@ -45,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	double widthMultiplier = 0.0;
 	double heightMultiplier = 0.0;
 
-	double smoothX = -1, smoothY = -1;
+	int smoothX = -1, smoothY = -1;
 	double offset = settings.smooth;
 
 	bool connected = false;
@@ -64,8 +64,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	// map the 3DS screen to your monitor resolution (May stretch the active zone depending on aspect ratio)
 
 	if (settings.Custom_Active_Zone) {
-		widthMultiplier = screenWidth / (double)ActiveX;
-		heightMultiplier = screenHeight / (double)ActiveY;
+		widthMultiplier = screenWidth / ActiveX;
+		heightMultiplier = screenHeight / ActiveY;
 	} else {
 		widthMultiplier = screenWidth / 320.0;
 		heightMultiplier = screenHeight / 240.0;
@@ -111,17 +111,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 	while (true) {
 		if (receiveBuffer(sizeof(struct packet)) > 0 && buffer.header.command == KEYS) {
 
-			memcpy(&currentTouch, &buffer.Keys.touch, 4); // put in memory the touch values that the 3DS gave us
+			memcpy(&currentTouch, &buffer.Keys.touch, sizeof(currentTouch)); // put in memory the touch values that the 3DS gave us
 
 			if (currentTouch.x && currentTouch.y) { // make sure its not putting the cursor at the top left when 3ds stop sending packet
 
 				// Calculate position relative to the active zone's origin
-                double relativeX = (double)(currentTouch.x - StartX);
-                double relativeY = (double)(currentTouch.y - StartY);
+                int relativeX = (currentTouch.x - StartX);
+                int relativeY = (currentTouch.y - StartY);
 
 				// adjust the touch position to your screen resolution
-				double targetX = relativeX * widthMultiplier;
-				double targetY = relativeY * heightMultiplier;
+				int targetX = relativeX * widthMultiplier;
+				int targetY = relativeY * heightMultiplier;
 
 				// smooth the movement based on an offset between 0 and 1
 				if (smoothX < 0) {

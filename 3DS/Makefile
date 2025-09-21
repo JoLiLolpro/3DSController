@@ -26,15 +26,15 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-TARGET		:=	3DSController
+TARGET		:=	3DSMouse
 BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-APP_TITLE		:=	3DS Controller
+APP_TITLE		:=	3DSMouse
 APP_DESCRIPTION	:=
-APP_AUTHOR		:=	CTurt
+APP_AUTHOR		:=	CTurt forked by JoLiLol
 ICON			:=	cxi/icon48x48.png
 
 #---------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fms-extensions \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+CFLAGS	+=	$(INCLUDE) -D__3DS__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 

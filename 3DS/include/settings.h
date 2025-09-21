@@ -6,7 +6,6 @@ struct settings {
 	char IPString[16];
 	int port;
 	int BackLight;
-	int found;
 };
 
 extern struct settings settings;

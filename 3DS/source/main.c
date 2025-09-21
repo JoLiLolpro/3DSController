@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <setjmp.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include <3ds.h>
 
@@ -66,17 +67,13 @@ int main(void) {
 
 	if(setjmp(exitJmp)) goto exit;
 
-	static touchPosition lastTouch = {0xFFFF, 0xFFFF};
-
 	printText("Welcome to 3DS Mouse, version %.1f", VERSION);
 
 	printText("Reading settings...");
 
 	if(!readSettings()) {
-		hang("Could not read 3DSController.ini!");
+		hang("Could not read 3DSMouse.ini!");
 	}
-	
-	if(!settings.BackLight) disableBacklight();
 	
 	printText("Initialising FS...");
 	
@@ -92,7 +89,7 @@ int main(void) {
 		printText("Waiting for WiFi connection...");
 		printText("Ensure you are in range of an access point,");
 		printText("and that wireless communications are enabled.");
-		printText("You can alternatively press Start and Select to exit.");
+		printText("press Start to exit.");
 		while(aptMainLoop()) { /* Wait for WiFi; break when WiFiStatus is truthy */
 			u32 wifiStatus = 0;
 			ACU_GetWifiStatus(&wifiStatus);
@@ -170,16 +167,21 @@ int main(void) {
 
 	printText("Connected!");
 
+	if(!settings.BackLight) printText("disabling backlight in 5 seconds");
+
 	// draw the lines on the bottom screen, DONT ASK ME HOW I FOUND THOSES NUMBERS
 
-	if(settings.BackLight) {
-		drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top horizontal
-		drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left vertical
-		drawBox(XS, YE-4, CalculV, 5, 0, 255, 0); // Bottom horizontal
-		drawBox(XE-5, YS, 5, CalculH, 0, 255, 0); // Right vertical
-	}
+	drawBox(XS, YS, CalculV, 5, 0, 255, 0); // Top horizontal
+	drawBox(XS, YS, 5, CalculH, 0, 255, 0); // Left vertical
+	drawBox(XS, YE-4, CalculV, 5, 0, 255, 0); // Bottom horizontal
+	drawBox(XE-5, YS, 5, CalculH, 0, 255, 0); // Right vertical
 	gfxFlushBuffers();
 	gfxSwapBuffers();
+
+	if(!settings.BackLight) {
+		sleep(5);
+		disableBacklight();
+	}
 
 	// main loop that send the touch data
 
@@ -193,18 +195,15 @@ int main(void) {
 
 		// send data only if the touch update
 
-		if (touch.px != lastTouch.px || touch.py != lastTouch.py) {
-			sendKeys(kDown, touch);
-			lastTouch = touch;
-		}
-		
+		sendKeys(kDown, touch);
+
 		if (kDown & KEY_START) longjmp(exitJmp, 1);
 	}
 
 	
 	exit:
 	
-	if(!settings.BackLight && settings.found) enableBacklight();
+	if(!settings.BackLight) enableBacklight();
 	
 	SOCU_ShutdownSockets();
 	svcCloseHandle(fileHandle);

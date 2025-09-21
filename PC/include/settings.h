@@ -10,18 +10,18 @@ struct settings {
 };
 
 struct StartCoor {
-    double x;
-    double y;
+    int x;
+    int y;
 };
 
 struct EndCoor {
-    double x;
-    double y;
+    int x;
+    int y;
 };
 
 struct touch {
-	short x;
-	short y;
+	unsigned short x;
+	unsigned short y;
 };
 
 extern struct touch currentTouch;

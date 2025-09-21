@@ -11,7 +11,7 @@ OBJS	:=	$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(wildcard $(SDIR)/*.c))
 
 PLATFORM = $(shell uname)
 
-TARGET=3DSController.exe
+TARGET=3DSMouse.exe
 
 
 $(TARGET): $(ODIR) $(OBJS)
