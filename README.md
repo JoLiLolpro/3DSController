@@ -35,7 +35,7 @@ It should say `connected`, this is a good sign. To see if it works, touch the 3d
 
 ### for LINUX:
 
-**IMPORTANT INFORMATION:** While the Windows version emulates a mouse cursor, the Linux version emulates a touchscreen, which means that you will not see the cursor moving. I made this choice because it was the only way to play osu lazer in Linux (as far as I know). In osu you need to enable `input>touch` and `gameplay>show gameplay cursor during touch input`. **osu-wine will not work.**
+**IMPORTANT INFORMATION:** While the Windows version emulates a mouse cursor, the Linux version emulates a touchscreen. I made this choice because it was the only way to play osu lazer in Linux (as far as I know). In osu you need to enable `input>touch` and `gameplay>show gameplay cursor during touch input`. **osu-wine may work.**
 
 You need to open your port with `sudo ufw allow <your-port>/udp`, by default the port is `8889` so type `sudo ufw allow 8889/udp`.
 
