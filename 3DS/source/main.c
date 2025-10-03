@@ -16,6 +16,7 @@
 
 static jmp_buf exitJmp;
 int LinePosition = 2;
+bool backlight = true;
 
 static double VERSION = 1.6;
 
@@ -181,6 +182,7 @@ int main(void) {
 	if(!settings.BackLight) {
 		sleep(5);
 		disableBacklight();
+		backlight = false;
 	}
 
 	// main loop that send the touch data
@@ -203,7 +205,7 @@ int main(void) {
 	
 	exit:
 	
-	if(!settings.BackLight) enableBacklight();
+	if(!backlight) enableBacklight();
 	
 	SOCU_ShutdownSockets();
 	svcCloseHandle(fileHandle);
