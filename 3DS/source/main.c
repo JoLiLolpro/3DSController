@@ -16,8 +16,9 @@
 
 static jmp_buf exitJmp;
 int LinePosition = 2;
+bool current_backlight = true;
 
-static double VERSION = 1.6;
+static double VERSION = 1.7;
 
 void printText(const char *format, ...) {
     char buffer[256];
@@ -181,6 +182,7 @@ int main(void) {
 	if(!settings.BackLight) {
 		sleep(5);
 		disableBacklight();
+		current_backlight = false;
 	}
 
 	// main loop that send the touch data
@@ -193,8 +195,6 @@ int main(void) {
 		touchPosition touch;
 		touchRead(&touch);
 
-		// send data only if the touch update
-
 		sendKeys(kDown, touch);
 
 		if (kDown & KEY_START) longjmp(exitJmp, 1);
@@ -203,7 +203,7 @@ int main(void) {
 	
 	exit:
 	
-	if(!settings.BackLight) enableBacklight();
+	if(!settings.BackLight && !current_backlight) enableBacklight();
 	
 	SOCU_ShutdownSockets();
 	svcCloseHandle(fileHandle);

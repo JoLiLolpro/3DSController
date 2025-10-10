@@ -54,23 +54,29 @@ If you want to channge the port, find the line `Port: 8889` and change it to you
 
 There is a `debug` option in `settings.json` and if you set it to `true` it will display the latency of the 3ds.
 
+There is a `Drawing` option in `settings.json` and if you set it to `true` it will act as a touchscreen so you can draw and play games that support touchscreen.
+
 In the 3DS's `3DSMouse.ini` the screen is turned on by default, if you still want to completely turn off the screen like the original app does, then set `BackLight` to `0`.
 
 In the PC's `settings.json` there is a setting called `Smooth`, it determines how smooth the mouse movements will be (more smooth = slower movement) I recommend setting it to `1` if you want to play osu!
 
 By default the active zone is the whole 3ds bottom screen but you can change it by setting `Custom_Active_Zone` to `true`, the active zone is determined as a rectangle with a `Start_Coordinate` that corresponds to the top-left corner and a `End_Coordinate` that corresponds to the bottom-right corner.
 
-The 3ds origin point (0;0) is in the top-left corner of the screen, and the screen resolution is 240*320.
+Same thing for the Screen active zone but you dont need to activate it, just change the values as you wish.
 
-## List of coordinates that matches the 16:9 aspect ratio
+The **Screen** origin point (0;0) is in the top-left corner of the screen, and the screen resolution is 65535*65535. (yes its the same for everyone)
+
+The **3ds** origin point (0;0) is in the top-left corner of the screen, and the screen resolution is 240*320.
+
+## List of 3ds coordinates that matches the 16:9 aspect ratio
 
 | **Location**| **Start point** | **End point** |
 | ----------  | --------------- | ------------- |
-|Total screen |      (0;60)      |     (320;240)     |
-|Top Left     |      (0;0)      |     (208;117)     |
-|Top Right    |      (112;0)      |     (320;117)     |
-|Bottom Left  |      (0;123)      |     (208;240)     |
-|Bottom Right |      (112;123)      |     (320;240)     |
+|Total screen |     (0;60)      |   (320;240)   |
+|Top Left     |     (0;0)       |   (208;117)   |
+|Top Right    |     (112;0)     |   (320;117)   |
+|Bottom Left  |     (0;123)     |   (208;240)   |
+|Bottom Right |     (112;123)   |   (320;240)   |
 
 ## Building
 For the 3ds app, install devkitpro, open a cmd/terminal in the 3DS folder and type `make clean` then `make`.

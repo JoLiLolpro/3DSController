@@ -1,6 +1,6 @@
 // 3DS Mouse Server
 
-#define VERSION 1.6
+#define VERSION 1.7
 
 #include <windows.h>
 #include <stdio.h>
@@ -26,8 +26,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 
 	// get system infos and load the settings file
 
-	DWORD screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	DWORD screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	load_settings("settings.json");
@@ -42,6 +40,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 
 	// define global variables
 
+	bool touching = false;
+
 	double widthMultiplier = 0.0;
 	double heightMultiplier = 0.0;
 
@@ -50,32 +50,43 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 
 	bool connected = false;
 
-	// the Starting point of the active zone rectangle
+	// the Starting point of the active zone rectangle for 3ds
 	int StartX = StartCoor.x;
 	int StartY = StartCoor.y;
 
-	// the Ending point of the active zone rectangle
+	// the Ending point of the active zone rectangle for 3ds
 	int EndX = EndCoor.x;
 	int EndY = EndCoor.y;
 
-	int ActiveX = EndX-StartX; // size X of the active zone
-	int ActiveY = EndY-StartY; // size Y of the active zone
+	int ActiveX = EndX-StartX; // size X of the active zone for 3ds
+	int ActiveY = EndY-StartY; // size Y of the active zone for 3ds
 
-	// map the 3DS screen to your monitor resolution (May stretch the active zone depending on aspect ratio)
+	// same but for the PC screen
+	int ScreenStartX = ScreenStartCoor.x;
+	int ScreenStartY = ScreenStartCoor.y;
+	int ScreenEndX = ScreenEndCoor.x;
+	int ScreenEndY = ScreenEndCoor.y;
+	int ScreenActiveX = ScreenEndX-ScreenStartX;
+	int ScreenActiveY = ScreenEndY-ScreenStartY;
+
+	// map the 3DS screen to your screen (May stretch the active zone depending on aspect ratio)
 
 	if (settings.Custom_Active_Zone) {
-		widthMultiplier = screenWidth / ActiveX;
-		heightMultiplier = screenHeight / ActiveY;
+		widthMultiplier = ScreenActiveX / ActiveX;
+		heightMultiplier = ScreenActiveY / ActiveY;
 	} else {
-		widthMultiplier = screenWidth / 320.0;
-		heightMultiplier = screenHeight / 240.0;
+		widthMultiplier = ScreenActiveX / 320.0;
+		heightMultiplier = ScreenActiveY / 240.0;
 		StartX = 0;
 		StartY = 0;
+		EndX = 320;
+		EndY = 240;
 	}
 
 	initNetwork();
 
 	printf("Custom_Active_Zone: %s\n", settings.Custom_Active_Zone ? "true" : "false");
+	printf("Drawing: %s\n", settings.TapFeature ? "true" : "false");
 	printf("Debug: %s\n", settings.debug ? "true" : "false");
 	printf("Smoothing: %f\n", settings.smooth);
 	printf("Port: %d\n", settings.port);
@@ -119,12 +130,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
                 int relativeX = (currentTouch.x - StartX);
                 int relativeY = (currentTouch.y - StartY);
 
-				// adjust the touch position to your screen resolution
-				int targetX = relativeX * widthMultiplier;
-				int targetY = relativeY * heightMultiplier;
+				// adjust the touch position to your screen
+				int targetX = relativeX * widthMultiplier + ScreenStartX;
+				int targetY = relativeY * heightMultiplier + ScreenStartY;
 
 				// smooth the movement based on an offset between 0 and 1
-				if (smoothX < 0) {
+				if (smoothX < 0 || !touching) {
     				smoothX = targetX;
     				smoothY = targetY;
 				} else {
@@ -151,8 +162,34 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 						QueryPerformanceCounter(&receiveTime);
 					}
 				} else {
-					SetCursorPos(smoothX, smoothY); // set the mouse position
+					
+					INPUT move = {0};
+            		move.type = INPUT_MOUSE;
+            		move.mi.dx = smoothX;
+            		move.mi.dy = smoothY;
+            		move.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
+
+            		SendInput(1, &move, sizeof(move)); // set the mouse position
+
+					if (settings.TapFeature && !touching) {
+						INPUT down = {0};
+						down.type = INPUT_MOUSE;
+						down.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+
+						SendInput(1, &down, sizeof(INPUT)); // simulate the click hold
+					}
+					if (!touching) touching = true;
 				}
+			} else {
+				if (settings.TapFeature && touching) {
+					INPUT up = {0};
+					up.type = INPUT_MOUSE;
+					up.mi.dwFlags = MOUSEEVENTF_LEFTUP; // release the click if no more touch info are sent
+
+					SendInput(1, &up, sizeof(INPUT));
+				}
+				if (touching) touching = false;
+				
 			}
 		}
 	}

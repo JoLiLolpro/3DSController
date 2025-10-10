@@ -5,6 +5,8 @@
     "smooth": 0.3,
     "comment_Debug": "if this is true the latency will be displayed",
     "Debug": false,
+    "comment_Drawing": "enable the feature if you want to use your 3ds touchscreen as a real touchscreen for drawing or playing touchscreen games",
+    "Drawing": false,
     "comment_Active_Zone_1": "The 3ds bottom screen resolution is 320*240, you can set a custom active zone as a rectangle that matches your screen aspect ratio (Start_Coordinate is the top-left corner and End_Coordinate is the bottom-right corner of the rectangle), (0;0) is the top left corner of the screen.",
     "comment_Active_Zone_2": "For example, the coordinates below are a rectangle that covers the bottom right area of the screen and that matches the 16:9 aspect ratio. see the readme.md file for more presets",
     "comment_Active_Zone_3": "Set Custom_Active_Zone to true if you want your custom active zone to be recognized by the program.",
@@ -16,5 +18,15 @@
     "End_Coordinate": {
         "x": 320,
         "y": 240
+    },
+    "comment_Screen_Active_Zone": "if you want to use the whole screen then don touch ScreenStartCoor and ScreenEndCoor, more infos in the readme.md file",
+    "ScreenStartCoor": {
+        "x": 0,
+        "y": 0
+    },
+    "ScreenEndCoor": {
+        "x": 65535,
+        "y": 65535
     }
+
 }
