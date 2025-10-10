@@ -158,7 +158,23 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 							printf("Latency: %.3f ms\n", latencyMs);
 						}
 
-						SetCursorPos(smoothX, smoothY); // set the mouse position
+						INPUT move = {0};
+            			move.type = INPUT_MOUSE;
+            			move.mi.dx = smoothX;
+            			move.mi.dy = smoothY;
+            			move.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
+
+            			SendInput(1, &move, sizeof(move)); // set the mouse position
+
+						if (settings.TapFeature && !touching) {
+							INPUT down = {0};
+							down.type = INPUT_MOUSE;
+							down.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+
+							SendInput(1, &down, sizeof(INPUT)); // simulate the click hold
+						}
+						if (!touching) touching = true;
+						
 						QueryPerformanceCounter(&receiveTime);
 					}
 				} else {
