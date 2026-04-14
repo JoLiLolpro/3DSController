@@ -19,7 +19,7 @@
         "x": 320,
         "y": 240
     },
-    "comment_Screen_Active_Zone": "if you want to use the whole screen then don touch ScreenStartCoor and ScreenEndCoor, more infos in the readme.md file",
+    "comment_Screen_Active_Zone": "if you want to use the whole screen then dont touch ScreenStartCoor and ScreenEndCoor, more infos in the readme.md file",
     "ScreenStartCoor": {
         "x": 0,
         "y": 0
