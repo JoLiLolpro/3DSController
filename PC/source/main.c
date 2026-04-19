@@ -193,8 +193,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 						down.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 
 						SendInput(1, &down, sizeof(INPUT)); // simulate the click hold
+						touching = true;
 					}
-					if (!touching) touching = true;
 				}
 			} else {
 				if (settings.TapFeature && touching) {
@@ -203,9 +203,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmd, int nShow)
 					up.mi.dwFlags = MOUSEEVENTF_LEFTUP; // release the click if no more touch info are sent
 
 					SendInput(1, &up, sizeof(INPUT));
+					touching = false;
 				}
-				if (touching) touching = false;
-				
 			}
 		}
 	}
