@@ -7,5 +7,7 @@
 3DS/*.cia
 PC/build/
 PC/*.exe
+Linux/build/
+Linux/3DSMouse-linux
 .vscode/
 **/.vscode/
